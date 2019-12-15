@@ -1,4 +1,4 @@
-from . import db
+from app import db, ma
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime

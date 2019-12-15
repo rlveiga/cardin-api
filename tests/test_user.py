@@ -24,4 +24,3 @@ def test_login_not_found(test_client, init_db):
 
     assert data['success'] == False
     assert response.status_code == 404
-

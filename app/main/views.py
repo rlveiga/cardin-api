@@ -1,6 +1,7 @@
 from flask import jsonify, Blueprint, request, make_response
 from app import db
-from app.models import User
+from app.models.users import User
+from app.models.schemas import user_share_schema
 from . import main
 
 @main.route('/users/', methods=['GET'])
@@ -28,11 +29,12 @@ def login():
         }
 
         return make_response(res, 404)
+        
     if(user.verify_password(body['password'])):
         token = user.generate_auth_token(3600).decode('UTF-8')
         
         res = {
-            'user': user.serialize(),
+            'user': user_share_schema.dump(user),
             'token': token,
             'success': True
         }
