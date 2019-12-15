@@ -37,9 +37,3 @@ class User(db.Model):
              return None
              
         return User.query.get(data['id'])
-
-    def serialize(self):
-        return {
-            'name': self.name,
-            'email': self.email
-        }

@@ -1,6 +1,7 @@
 import pytest
 from app import create_app, db
 from app.models.user import User
+from app.models.room import Room, Association
 
 @pytest.fixture(scope='module')
 def test_client():
@@ -23,13 +24,30 @@ def init_db():
     db.create_all()
 
     # Populate with data
-    user1 = User(name='rodrigo', email='rlveiga@gmail.com')
-    user1.password = 'abc123'
-    
-    db.session.add(user1)
+    user = User(name='rodrigo', email='rlveiga@gmail.com')
+    user.password = 'abc123'
+
+    db.session.add(user)
+    db.session.commit()
+
+    room = Room(code='test1')
+
+    db.session.add(room)
+    db.session.commit()
+
+    join = Association(user_id=1, room_id=1)
+
+    db.session.add(join)
     db.session.commit()
 
     yield db # actual testing
 
     db.session.close()
     db.drop_all()
+
+@pytest.fixture(scope='module')
+def token():
+    user = User.query.filter_by(id=1).first()
+    token = user.generate_auth_token(3600).decode('UTF-8')
+
+    yield token

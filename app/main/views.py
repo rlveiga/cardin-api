@@ -1,7 +1,8 @@
 from flask import jsonify, Blueprint, current_app, request, make_response
 from app import db
 from app.models.user import User
-from app.models.schemas import user_share_schema, users_share_schema
+from app.models.room import Room, Association
+from app.models.schemas import user_share_schema, users_share_schema, room_share_schema
 from . import main
 from functools import wraps
 import jwt
@@ -66,4 +67,52 @@ def login():
             'message': 'Invalid credentials'
         }
 
+        return jsonify(res)
+
+@main.route('/rooms', methods=['POST'])
+@token_required
+def create_room(user):
+    body = request.get_json()
+
+    if(body['code']):
+        new_room = Room(code=body['code'])
+
+        db.session.add(new_room)
+        db.session.commit()
+
+        new_join = Association(user_id=user.id, room_id=new_room.id)
+
+        db.session.add(new_join)
+        db.session.commit()
+
+        room = {
+            'data': room_share_schema.dump(new_room),
+            'users': users_share_schema.dump(new_room.users)
+        }
+
+        res = {
+            'success': True,
+            'room': room
+        }
+
+        return jsonify(res)
+
+    else:
+        return jsonify({'success': False, 'message': 'Missing code in body'}), 422
+
+@main.route('/rooms/<room_id>', methods=['GET'])
+@token_required
+def get_room_info(user, room_id):
+    print(room_id)
+    room = Room.query.filter_by(id=room_id).first()
+
+    if room is None:
+        return jsonify({'success': False, 'message': 'Room not found'}), 404
+
+    else:
+        res = {
+            'room': room_share_schema.dump(room),
+            'users': users_share_schema.dump(room.users)
+        }
+        
         return jsonify(res)

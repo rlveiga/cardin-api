@@ -6,3 +6,9 @@ class UserSchema(ma.Schema):
 
 user_share_schema = UserSchema()
 users_share_schema = UserSchema(many=True)
+
+class RoomSchema(ma.ModelSchema):
+    class Meta:
+        fields = ('id', 'code')
+
+room_share_schema = RoomSchema()
