@@ -24,6 +24,8 @@ def init_db():
 
     # Populate with data
     user1 = User(name='rodrigo', email='rlveiga@gmail.com')
+    user1.password = 'abc123'
+    
     db.session.add(user1)
     db.session.commit()
 
