@@ -1,10 +1,18 @@
-from flask import jsonify
+from flask import jsonify, Blueprint
+from app import db
+from app.models import User
 from . import main
 
-@main.route('/')
+@main.route('/users/', methods=['GET'])
 def index():
-	response = {
-		'message': 'We are live!',
-	}
+    users = User.query.all()
+    user_list = []
 
-	return jsonify(response)
+    for u in users:
+        user_list.append(u.serialize())
+
+    res = {
+        'users': user_list
+    }
+
+    return jsonify(res)
