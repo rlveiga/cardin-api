@@ -30,9 +30,11 @@ def init_db():
     db.session.add(user)
     db.session.commit()
 
-    room = Room(code='test1')
+    room1 = Room(code='test1')
+    room2 = Room(code='test2')
 
-    db.session.add(room)
+    db.session.add(room1)
+    db.session.add(room2)
     db.session.commit()
 
     join = Association(user_id=1, room_id=1)

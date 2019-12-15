@@ -103,7 +103,6 @@ def create_room(user):
 @main.route('/rooms/<room_id>', methods=['GET'])
 @token_required
 def get_room_info(user, room_id):
-    print(room_id)
     room = Room.query.filter_by(id=room_id).first()
 
     if room is None:
@@ -115,4 +114,30 @@ def get_room_info(user, room_id):
             'users': users_share_schema.dump(room.users)
         }
         
+        return jsonify(res)
+    
+@main.route('/rooms/<room_id>', methods=['POST'])
+@token_required
+def join_room(user, room_id):
+    room = Room.query.filter_by(id=room_id).first()
+
+    if room is None:
+        return jsonify({'success': False, 'message': 'Room not found'}), 404
+
+    else:
+        join = Association(user_id=user.id, room_id=room_id)
+
+        db.session.add(join)
+        db.session.commit()
+
+        room_obj = {
+            'data': room_share_schema.dump(room),
+            'users': users_share_schema.dump(room.users)
+        }
+
+        res = {
+            'room': room_obj,
+            'success': True
+        }
+
         return jsonify(res)
