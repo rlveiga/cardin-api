@@ -1,6 +1,6 @@
 from flask import jsonify, Blueprint, current_app, request, make_response
 from app import db
-from app.models.users import User
+from app.models.user import User
 from app.models.schemas import user_share_schema, users_share_schema
 from . import main
 from functools import wraps
@@ -19,7 +19,7 @@ def token_required(fn):
             
             user = User.query.filter_by(id=data['id']).first()
 
-        except Exception as e:
+        except:
             return jsonify({'success': False, 'message': 'Authentication failed'}), 403
 
         return fn(user, **kwargs)
@@ -62,7 +62,8 @@ def login():
 
     else:
         res = {
-            'success': False
+            'success': False,
+            'message': 'Invalid credentials'
         }
 
         return jsonify(res)
