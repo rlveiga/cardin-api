@@ -4,9 +4,10 @@ from datetime import datetime
 class Association(db.Model):
     __tablename__ = 'association'
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), primary_key=True)
-    date_joined = db.Column(db.DateTime, default=datetime.utcnow())
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), nullable=False)
+    date_joined = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
 
 class Room(db.Model):
     __tablename__ = 'rooms'

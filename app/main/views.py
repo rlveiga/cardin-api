@@ -100,6 +100,24 @@ def create_room(user):
     else:
         return jsonify({'success': False, 'message': 'Missing code in body'}), 422
 
+@main.route('/rooms', methods=['GET'])
+@token_required
+def get_current_room(user):
+    association = Association.query.filter_by(user_id=user.id).first()
+
+    if association is None:
+        return jsonify({'success': True, 'rooms': None}), 200
+
+    else:
+        room = Room.query.filter_by(id=association.room_id).first()
+        
+        res = {
+            'success': True,
+            'room': room_share_schema.dump(room),
+        }
+        
+        return jsonify(res)
+
 @main.route('/rooms/<room_id>', methods=['GET'])
 @token_required
 def get_room_info(user, room_id):
@@ -141,3 +159,22 @@ def join_room(user, room_id):
         }
 
         return jsonify(res)
+
+@main.route('/rooms/<room_id>', methods=['DELETE'])
+@token_required
+def leave_room(user, room_id):
+    room = Room.query.filter_by(id=room_id).first()
+    association = Association.query.filter_by(room_id=room_id, user_id=user.id).first()
+
+    if room is None:
+        return jsonify({'success': False, 'message': 'Room not found'}), 404
+
+    if association is None:
+        return jsonify({'success': False, 'message': 'You do not belong to this room'}), 404
+
+    else:
+        db.session.delete(association)
+        db.session.commit()
+
+        return jsonify({'success': True})
+
