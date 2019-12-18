@@ -12,7 +12,7 @@ def test_create_room(test_client, init_db, token):
     assert data['room']['users'][0]['name'] == 'rodrigo'
 
 def test_join_room(test_client, init_db, token):
-    response = test_client.post('/rooms/2', headers={'access-token': token})
+    response = test_client.post('/rooms/test2', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -21,23 +21,24 @@ def test_join_room(test_client, init_db, token):
     assert data['room']['users'][0]['name'] == 'rodrigo'
 
 def test_join_unexisting_room(test_client, init_db, token):
-    response = test_client.post('/rooms/42', headers={'access-token': token})
+    response = test_client.post('/rooms/test3', headers={'access-token': token})
 
     data = json.loads(response.data)
 
     assert response.status_code == 404
     assert data['message'] == 'Room not found'  
 
-def test_get_room_players(test_client, init_db, token):
-    response = test_client.get('/rooms/1', headers={'access-token': token})
+def test_get_room_info(test_client, init_db, token):
+    response = test_client.get('/rooms/test2', headers={'access-token': token})
 
     data = json.loads(response.data)
 
     assert response.status_code == 200
-    assert data['users'][0]['name']== 'rodrigo'
+    assert data['room']['data']['code'] == 'test2'
+    assert data['room']['users'][0]['data']['name']== 'rodrigo'
     
 def test_get_unexisting_room_players(test_client, init_db, token):
-    response = test_client.get('/rooms/42', headers={'access-token': token})
+    response = test_client.get('/rooms/test3', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -57,9 +58,8 @@ def test_leave_room_not_allowed(test_client, init_db, token):
 
     data = json.loads(response.data)
 
-    assert response.status_code == 404
+    assert response.status_code == 200
     assert data['success'] == False
-    assert data['message'] == 'You do not belong to this room'
 
 def test_leave_unexisting_room(test_client, init_db, token):
     response = test_client.delete('/rooms/45', headers={'access-token': token})

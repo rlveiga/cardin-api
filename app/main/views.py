@@ -75,7 +75,7 @@ def create_room(user):
     body = request.get_json()
 
     if(body['code']):
-        new_room = Room(code=body['code'])
+        new_room = Room(code=body['code'], created_by=user.id)
 
         db.session.add(new_room)
         db.session.commit()
@@ -118,63 +118,57 @@ def get_current_room(user):
         
         return jsonify(res)
 
-@main.route('/rooms/<room_id>', methods=['GET'])
+@main.route('/rooms/<room_code>', methods=['GET'])
 @token_required
-def get_room_info(user, room_id):
-    room = Room.query.filter_by(id=room_id).first()
+def get_room_info(user, room_code):
+    room = Room.query.filter_by(code=room_code, status='active').first()
 
     if room is None:
         return jsonify({'success': False, 'message': 'Room not found'}), 404
 
     else:
+
+        players_list = []
+
+        for member in room.users:
+            players_list.append({
+                'data': user_share_schema.dump(member),
+                'score': 0
+            })
+
         res = {
-            'room': room_share_schema.dump(room),
-            'users': users_share_schema.dump(room.users)
+            'sucess': True,
+            'room': {
+                'data': room_share_schema.dump(room),
+                'users': players_list
+            }
         }
         
         return jsonify(res)
     
-@main.route('/rooms/<room_id>', methods=['POST'])
+@main.route('/rooms/<room_code>', methods=['POST'])
 @token_required
-def join_room(user, room_id):
-    room = Room.query.filter_by(id=room_id).first()
+def join_room(user, room_code):
+    room = Room.query.filter_by(code=room_code,status='active').first()
 
     if room is None:
         return jsonify({'success': False, 'message': 'Room not found'}), 404
 
     else:
-        join = Association(user_id=user.id, room_id=room_id)
+        response = room.add_player(user.id)
 
-        db.session.add(join)
-        db.session.commit()
-
-        room_obj = {
-            'data': room_share_schema.dump(room),
-            'users': users_share_schema.dump(room.users)
-        }
-
-        res = {
-            'room': room_obj,
-            'success': True
-        }
-
-        return jsonify(res)
+        return jsonify(response)
 
 @main.route('/rooms/<room_id>', methods=['DELETE'])
 @token_required
 def leave_room(user, room_id):
     room = Room.query.filter_by(id=room_id).first()
-    association = Association.query.filter_by(room_id=room_id, user_id=user.id).first()
 
     if room is None:
         return jsonify({'success': False, 'message': 'Room not found'}), 404
 
-    if association is None:
-        return jsonify({'success': False, 'message': 'You do not belong to this room'}), 404
-
     else:
-        db.session.delete(association)
-        db.session.commit()
+        response = room.remove_player(user.id)
 
-        return jsonify({'success': True})
+        return jsonify(response)
 

@@ -27,19 +27,25 @@ def init_db():
     user = User(name='rodrigo', email='rlveiga@gmail.com')
     user.password = 'abc123'
 
+    user2 = User(name='steve', email='steve@apple.com')
+    user2.password = 'abc123'
+
     db.session.add(user)
+    db.session.add(user2)
     db.session.commit()
 
-    room1 = Room(code='test1')
-    room2 = Room(code='test2')
+    room1 = Room(code='test1', created_by=user.id)
+    room2 = Room(code='test2', created_by=user2.id)
 
     db.session.add(room1)
     db.session.add(room2)
     db.session.commit()
 
     join = Association(user_id=1, room_id=1)
+    join2 = Association(user_id=2, room_id=2)
 
     db.session.add(join)
+    db.session.add(join2)
     db.session.commit()
 
     yield db # actual testing
