@@ -2,7 +2,7 @@ from flask import jsonify, Blueprint, current_app, request, make_response
 from app import db
 from app.models.user import User
 from app.models.room import Room, Association
-from app.models.schemas import user_share_schema, users_share_schema, room_share_schema
+from app.models.schemas import cards_share_schema, user_share_schema, users_share_schema, room_share_schema
 from . import main
 from functools import wraps
 import jwt
@@ -127,7 +127,6 @@ def get_room_info(user, room_code):
         return jsonify({'success': False, 'message': 'Room not found'}), 404
 
     else:
-
         players_list = []
 
         for member in room.users:
@@ -140,6 +139,7 @@ def get_room_info(user, room_code):
             'sucess': True,
             'room': {
                 'data': room_share_schema.dump(room),
+                'deck': cards_share_schema.dump(room.deck),
                 'users': players_list
             }
         }

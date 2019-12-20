@@ -1,5 +1,12 @@
 from app import ma
 
+class CardSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'card_type', 'card_text')
+
+card_share_schema = CardSchema()
+cards_share_schema = CardSchema(many=True)
+
 class UserSchema(ma.Schema):
     class Meta:
         fields = ('id', 'name', 'email')
@@ -9,6 +16,6 @@ users_share_schema = UserSchema(many=True)
 
 class RoomSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'status', 'code', 'created_by')
+        fields = ('id', 'status', 'code', 'created_by', 'wht_cards', 'blck_cards')
 
 room_share_schema = RoomSchema()
