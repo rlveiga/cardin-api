@@ -1,7 +1,10 @@
 from app import db
-from app.models.schemas import user_share_schema, users_share_schema, room_share_schema, cards_share_schema
+from app.models.schemas import user_share_schema, users_share_schema, room_share_schema, card_share_schema
 from datetime import datetime
 from enum import Enum
+from flask import jsonify
+
+import json
 
 class Card(db.Model):
     __tablename__ = 'cards'
@@ -11,27 +14,6 @@ class Card(db.Model):
     card_text = db.Column(db.String(64), nullable=False)
     # collection = db.Column(db.Integer, db.ForeignKey('collections.id'))
 
-# class WhiteGameCard(db.Model):
-#     __tablename__ = 'white_game_cards'
-
-#     id = db.Column(db.Integer, primary_key=True)
-#     card_id = db.Column(db.Integer, db.ForeignKey('cards.id'), nullable=False)
-#     room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), nullable=False)
-
-# class BlackGameCard(db.Model):
-#     __tablename__ = 'black_game_cards'  
-
-#     id = db.Column(db.Integer, primary_key=True)
-#     card_id = db.Column(db.Integer, db.ForeignKey('cards.id'), nullable=False)
-#     room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), nullable=False)
-
-class CardUsage(db.Model):
-    __tablename__ = 'card_usage'
-
-    id = db.Column(db.Integer, primary_key=True)
-    card_id = db.Column(db.Integer, db.ForeignKey('cards.id'))
-    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'))
-
 class Association(db.Model):
     __tablename__ = 'association'
 
@@ -40,32 +22,44 @@ class Association(db.Model):
     room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'))
     date_joined = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
 
-class GameState(Enum):
-    Zero = 0
-    Choosing = 1
-    Judging = 2
-    Results = 3
-
 class Room(db.Model):
     __tablename__ = 'rooms'
-
-    game_state = GameState.Zero
 
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(64), default='active')
     created_by = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow())
     code = db.Column(db.String(12))
-    deck = db.relationship("Card", secondary='card_usage')
-    # white_cards = db.relationship("WhiteGameCard", backref='room')
-    # black_cards = db.relationship("BlackGameCard", backref='room')
+    state = db.Column(db.String(1024))
     users = db.relationship("User", secondary='association')
 
-    def create_deck(self, cards):
-        for card in cards:
-            db.session.add(CardUsage(card_id=card.id, room_id=self.id))
-
+    def init_game(self, cards):
+        self.reset_state()
+        self.create_deck(cards)
+        
         db.session.commit()
+
+    def reset_state(self):
+        state = {
+            'game_state': 'Zero',
+            'deck': [],
+            'hands': [[]] * 4,
+            'turn': 0,
+            'scores': [0] * 4,
+        }
+
+        self.state = json.dumps(state)
+
+    def load_state(self):
+        return json.loads(self.state)
+
+    def create_deck(self, cards):
+        state = self.load_state()
+
+        for card in cards:
+            state['deck'].append(card_share_schema.dump(card))
+
+        self.state = json.dumps(state)
 
     #shuffles and distributes cards
     def shuffle_deck(self, user_id):

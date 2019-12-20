@@ -139,7 +139,6 @@ def get_room_info(user, room_code):
             'sucess': True,
             'room': {
                 'data': room_share_schema.dump(room),
-                'deck': cards_share_schema.dump(room.deck),
                 'users': players_list
             }
         }
