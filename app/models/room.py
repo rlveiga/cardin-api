@@ -6,14 +6,6 @@ from flask import jsonify
 
 import json
 
-class Card(db.Model):
-    __tablename__ = 'cards'
-
-    id = db.Column(db.Integer, primary_key=True)
-    card_type = db.Column(db.String(16), nullable=False)
-    card_text = db.Column(db.String(64), nullable=False)
-    # collection = db.Column(db.Integer, db.ForeignKey('collections.id'))
-
 class Association(db.Model):
     __tablename__ = 'association'
 
@@ -53,10 +45,10 @@ class Room(db.Model):
     def load_state(self):
         return json.loads(self.state)
 
-    def create_deck(self, cards):
+    def create_deck(self, collection):
         state = self.load_state()
 
-        for card in cards:
+        for card in collection:
             state['deck'].append(card_share_schema.dump(card))
 
         self.state = json.dumps(state)
