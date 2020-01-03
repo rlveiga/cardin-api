@@ -7,4 +7,3 @@ class Card(db.Model):
     card_text = db.Column(db.String(64), nullable=False)
     card_type = db.Column(db.String(16), nullable=False)
     collection_id = db.Column(db.Integer, db.ForeignKey('collections.id'))
-    collection = db.relationship('Collection')

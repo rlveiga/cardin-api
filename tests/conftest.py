@@ -3,6 +3,7 @@ from app import create_app, db
 from app.models.user import User
 from app.models.room import Room, Association
 from app.models.card import Card
+from app.models.collection import Collection
 
 @pytest.fixture(scope='module')
 def test_client():
@@ -35,6 +36,18 @@ def init_db():
     db.session.add(user2)
     db.session.commit()
 
+    collection1 = Collection(name='Test collection')
+
+    db.session.add(collection1)
+    db.session.commit()
+
+    card1 = Card(card_type='black', card_text='I am starting to feel a', collection_id=1)
+    card2 = Card(card_type='white', card_text='Social justice', collection_id=1)
+
+    db.session.add(card1)
+    db.session.add(card2)
+    db.session.commit()
+
     room1 = Room(code='test1', created_by=user.id)
     room2 = Room(code='test2', created_by=user2.id)
 
@@ -47,14 +60,7 @@ def init_db():
 
     db.session.add(join)
     db.session.add(join2)
-    db.session.commit()
-
-    card1 = Card(card_type='black', card_text='I am starting to feel a')
-    card2 = Card(card_type='white', card_text='Social justice')
-
-    db.session.add(card1)
-    db.session.add(card2)
-    db.session.commit()
+    db.session.commit()    
 
     yield db # actual testing
 
