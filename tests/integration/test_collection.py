@@ -32,12 +32,3 @@ def test_add_to_unexisting_collection(test_client, init_db, token):
 
 def test_add_unexisting_card_to_collection(test_client, init_db, token):
     pass
-
-def test_remove_from_collection(test_client, init_db, token):
-    collection = Collection.query.filter_by(id=1).one()
-
-    assert len(collection.cards) == 2
-
-    collection.remove_card(collection.cards[0])
-
-    assert collection.cards.length == 0
