@@ -4,7 +4,7 @@ from app.models.user import User
 from app.models.room import Room, Association
 from app.models.card import Card
 from app.models.collection import Collection
-from app.models.schemas import cards_share_schema, collections_share_schema, user_share_schema, users_share_schema, room_share_schema
+from app.models.schemas import cards_share_schema, collection_share_schema, user_share_schema, users_share_schema, room_share_schema
 from . import main
 from functools import wraps
 import jwt
@@ -15,7 +15,7 @@ def token_required(fn):
         token = request.headers.get('access-token')
 
         if not token:
-            return jsonify({'success': False, 'message': 'Token required'}), 403
+            return jsonify({'message': 'Token required'}), 403
 
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'])
@@ -23,7 +23,7 @@ def token_required(fn):
             user = User.query.filter_by(id=data['id']).first()
 
         except:
-            return jsonify({'success': False, 'message': 'Authentication failed'}), 403
+            return jsonify({'message': 'Authentication failed'}), 403
 
         return fn(user, **kwargs)
 
@@ -33,7 +33,6 @@ def token_required(fn):
 @token_required
 def index(user):
     res = {
-        'success': True,
         'user': user_share_schema.dump(user)
     }
 
@@ -46,7 +45,6 @@ def login():
     
     if(user is None):
         res = {
-            'success': False,
             'message': 'Não exisite um usuário com este username'
         }
 
@@ -57,8 +55,7 @@ def login():
         
         res = {
             'user': user_share_schema.dump(user),
-            'token': token,
-            'success': True
+            'token': token
         }
 
         return jsonify(res)
@@ -93,14 +90,13 @@ def create_room(user):
         }
 
         res = {
-            'success': True,
             'room': room
         }
 
         return jsonify(res)
 
     else:
-        return jsonify({'success': False, 'message': 'Missing code in body'}), 422
+        return jsonify({'message': 'Missing code in body'}), 422
 
 @main.route('/rooms', methods=['GET'])
 @token_required
@@ -108,13 +104,12 @@ def get_current_room(user):
     association = Association.query.filter_by(user_id=user.id).first()
 
     if association is None:
-        return jsonify({'success': True, 'rooms': None}), 200
+        return jsonify({'rooms': None}), 200
 
     else:
         room = Room.query.filter_by(id=association.room_id).first()
         
         res = {
-            'success': True,
             'room': room_share_schema.dump(room),
         }
         
@@ -126,7 +121,7 @@ def get_room_info(user, room_code):
     room = Room.query.filter_by(code=room_code, status='active').first()
 
     if room is None:
-        return jsonify({'success': False, 'message': 'Room not found'}), 404
+        return jsonify({'message': 'Room not found'}), 404
 
     else:
         players_list = []
@@ -153,7 +148,7 @@ def join_room(user, room_code):
     room = Room.query.filter_by(code=room_code,status='active').first()
 
     if room is None:
-        return jsonify({'success': False, 'message': 'Room not found'}), 404
+        return jsonify({'message': 'Room not found'}), 404
 
     else:
         response = room.add_player(user.id)
@@ -166,7 +161,7 @@ def leave_room(user, room_id):
     room = Room.query.filter_by(id=room_id).first()
 
     if room is None:
-        return jsonify({'success': False, 'message': 'Room not found'}), 404
+        return jsonify({'message': 'Room not found'}), 404
 
     else:
         response = room.remove_player(user.id)
@@ -189,8 +184,18 @@ def get_user_cards(user):
 def get_user_collections(user):
     collections = Collection.query.filter_by(created_by=user.id).all()
 
+    collection_list = []
+
+    for col in collections:
+        cards = Card.query.filter_by(collection_id=col.id).all()
+
+        collection_list.append({
+            'data': collection_share_schema.dump(col),
+            'cards': cards_share_schema.dump(cards)
+        })
+
     res = {
-        'collections': collections_share_schema.dump(collections)
+        'collections': collection_list
     }
 
     return jsonify(res)

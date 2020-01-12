@@ -7,8 +7,8 @@ def test_login_success(test_client, init_db):
     
     data = json.loads(response.data)
 
-    assert data['success'] == True
     assert response.status_code == 200
+    
     assert type(data['token']) is str
 
 def test_login_fail(test_client, init_db):
@@ -16,7 +16,6 @@ def test_login_fail(test_client, init_db):
 
     data = json.loads(response.data)
 
-    assert data['success'] == False
     assert response.status_code == 401
 
 def test_login_not_found(test_client, init_db):
@@ -24,7 +23,6 @@ def test_login_not_found(test_client, init_db):
 
     data = json.loads(response.data)
 
-    assert data['success'] == False
     assert response.status_code == 404
 
 def test_get_user_room(test_client, init_db, token):
@@ -33,7 +31,7 @@ def test_get_user_room(test_client, init_db, token):
     data = json.loads(response.data)
 
     assert response.status_code == 200
-    assert data['success'] == True
+    
     assert type(data['room']) is dict
 
 def test_get_user_collections(test_client, init_db, token):
@@ -42,9 +40,12 @@ def test_get_user_collections(test_client, init_db, token):
     data = json.loads(response.data)
 
     assert response.status_code == 200
+
     assert type(data['collections']) is list
     assert type(data['collections'][0]) is dict
-    assert data['collections'][0]['name'] == 'Test collection'
+
+    assert type(data['collections'][0]['data']) is dict
+    assert type(data['collections'][0]['cards']) is list
 
 def test_get_user_cards(test_client, init_db, token):
     response = test_client.get('/cards', headers={'access-token': token})
@@ -52,6 +53,6 @@ def test_get_user_cards(test_client, init_db, token):
     data = json.loads(response.data)
 
     assert response.status_code == 200
+
     assert type(data['cards']) is list
     assert type(data['cards'][0]) is dict
-    assert data['cards'][0]['name'] == 'I am starting to feel a'
