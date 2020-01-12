@@ -19,7 +19,7 @@ class Room(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(64), default='active', nullable=False)
-    created_by = db.Column(db.Integer, nullable=False)
+    created_by = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
     code = db.Column(db.String(12), nullable=False)
     data = db.Column(db.String(1024))

@@ -18,14 +18,14 @@ def test_create_collection(test_client, init_db, token):
     assert type(data['collection']['cards']) == dict
 
 def test_add_to_collection(test_client, init_db, token):
-    response = test_client.put('/collection/1', json=dict(card_type='white', card_text='Daft Punk'), headers={'access-token': token})
+    response = test_client.put('/collection/1', json=dict(card_type='white', name='Daft Punk'), headers={'access-token': token})
 
     data = json.loads(response.data)
 
     assert response.status_code == 200
     assert type(data['collection']['cards']) == list
     assert data['collection']['cards'][0]['card_type'] == 'white'
-    assert data['collection']['cards'][0]['card_text'] == 'Daft Punk'
+    assert data['collection']['cards'][0]['name'] == 'Daft Punk'
 
 def test_add_to_unexisting_collection(test_client, init_db, token):
     pass

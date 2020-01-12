@@ -8,5 +8,5 @@ class Card(db.Model):
     name = db.Column(db.String(64), nullable=False)
     card_type = db.Column(db.String(16), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)
-    created_by = db.Column(db.Integer, nullable=False)
+    created_by = db.Column(db.Integer)
     collection_id = db.Column(db.Integer, db.ForeignKey('collections.id'))

@@ -40,12 +40,12 @@ def index(user):
 @main.route('/auth/login', methods=['POST'])
 def login():
     body = request.get_json()
-    user = User.query.filter_by(email=body['email']).first()
+    user = User.query.filter_by(username=body['username']).first()
     
     if(user is None):
         res = {
             'success': False,
-            'message': 'Não exisite um usuário com este email'
+            'message': 'Não exisite um usuário com este username'
         }
 
         return make_response(res, 404)

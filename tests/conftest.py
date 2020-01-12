@@ -26,10 +26,10 @@ def init_db():
     db.create_all()
 
     # Populate with data
-    user = User(name='rodrigo', email='rlveiga@gmail.com')
+    user = User(username='rodrigo')
     user.password = 'abc123'
 
-    user2 = User(name='steve', email='steve@apple.com')
+    user2 = User(username='steve')
     user2.password = 'abc123'
 
     db.session.add(user)
@@ -41,8 +41,8 @@ def init_db():
     db.session.add(collection1)
     db.session.commit()
 
-    card1 = Card(card_type='black', card_text='I am starting to feel a', collection_id=1)
-    card2 = Card(card_type='white', card_text='Social justice', collection_id=1)
+    card1 = Card(card_type='black', name='I am starting to feel a', collection_id=1)
+    card2 = Card(card_type='white', name='Social justice', collection_id=1)
 
     db.session.add(card1)
     db.session.add(card2)
