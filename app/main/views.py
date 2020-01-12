@@ -199,3 +199,22 @@ def get_user_collections(user):
     }
 
     return jsonify(res)
+
+@main.route('/collections', methods=['POST'])
+@token_required
+def create_collection(user):
+    body = request.get_json()
+
+    new_collection = Collection(name=body['name'], created_by=user.id)
+
+    db.session.add(new_collection)
+    db.session.commit()
+
+    res = {
+        'collection': {
+            'data': collection_share_schema.dump(new_collection),
+            'cards': []
+        }
+    }
+
+    return jsonify(res), 201
