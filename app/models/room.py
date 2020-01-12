@@ -18,40 +18,43 @@ class Room(db.Model):
     __tablename__ = 'rooms'
 
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(64), default='active')
-    created_by = db.Column(db.Integer)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow())
-    code = db.Column(db.String(12))
-    state = db.Column(db.String(1024))
+    status = db.Column(db.String(64), default='active', nullable=False)
+    created_by = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
+    code = db.Column(db.String(12), nullable=False)
+    data = db.Column(db.String(1024))
     users = db.relationship("User", secondary='association')
 
-    def init_game(self, cards):
-        self.reset_state()
-        self.create_deck(cards)
+    def init_game(self, collection):
+        self.reset_game()
+        self.create_deck(collection)
         
         db.session.commit()
 
-    def reset_state(self):
-        state = {
-            'game_state': 'Zero',
+    # Game state is stored as data
+    def reset_game(self):
+        data = {
+            'state': 'Zero',
             'deck': [],
             'hands': [[]] * 4,
-            'turn': 0,
             'scores': [0] * 4,
         }
 
-        self.state = json.dumps(state)
+        self.data = json.dumps(data)
 
-    def load_state(self):
-        return json.loads(self.state)
+    def load_game(self):
+        return json.loads(self.data)
+
+    def update_game(self, data):
+        pass
 
     def create_deck(self, collection):
-        state = self.load_state()
+        game = self.load_game()
 
         for card in collection:
-            state['deck'].append(card_share_schema.dump(card))
+            game['deck'].append(card_share_schema.dump(card))
 
-        self.state = json.dumps(state)
+        self.data = json.dumps(game)
 
     #shuffles and distributes cards
     def shuffle_deck(self, user_id):
