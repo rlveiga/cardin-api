@@ -39,17 +39,19 @@ def test_get_user_room(test_client, init_db, token):
 def test_get_user_collections(test_client, init_db, token):
     response = test_client.get('/collections', headers={'access-token': token})
 
-    data = json.loads(response)
+    data = json.loads(response.data)
 
     assert response.status_code == 200
     assert type(data['collections']) is list
     assert type(data['collections'][0]) is dict
+    assert data['collections'][0]['name'] == 'Test collection'
 
 def test_get_user_cards(test_client, init_db, token):
     response = test_client.get('/cards', headers={'access-token': token})
 
-    data = json.loads(response)
+    data = json.loads(response.data)
 
     assert response.status_code == 200
     assert type(data['cards']) is list
     assert type(data['cards'][0]) is dict
+    assert data['cards'][0]['name'] == 'I am starting to feel a'

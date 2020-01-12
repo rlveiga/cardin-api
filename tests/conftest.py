@@ -36,13 +36,13 @@ def init_db():
     db.session.add(user2)
     db.session.commit()
 
-    collection1 = Collection(name='Test collection')
+    collection1 = Collection(name='Test collection', created_by=user.id)
 
     db.session.add(collection1)
     db.session.commit()
 
-    card1 = Card(card_type='black', name='I am starting to feel a', collection_id=1)
-    card2 = Card(card_type='white', name='Social justice', collection_id=1)
+    card1 = Card(card_type='black', name='I am starting to feel a', collection_id=collection1.id, created_by=user.id)
+    card2 = Card(card_type='white', name='Social justice', collection_id=collection1.id, created_by=user.id)
 
     db.session.add(card1)
     db.session.add(card2)

@@ -2,7 +2,9 @@ from flask import jsonify, Blueprint, current_app, request, make_response
 from app import db
 from app.models.user import User
 from app.models.room import Room, Association
-from app.models.schemas import cards_share_schema, user_share_schema, users_share_schema, room_share_schema
+from app.models.card import Card
+from app.models.collection import Collection
+from app.models.schemas import cards_share_schema, collections_share_schema, user_share_schema, users_share_schema, room_share_schema
 from . import main
 from functools import wraps
 import jwt
@@ -67,7 +69,7 @@ def login():
             'message': 'Invalid credentials'
         }
 
-        return jsonify(res)
+        return make_response(res, 401)
 
 @main.route('/rooms', methods=['POST'])
 @token_required
@@ -170,3 +172,25 @@ def leave_room(user, room_id):
         response = room.remove_player(user.id)
 
         return jsonify(response)
+
+@main.route('/cards', methods=['GET'])
+@token_required
+def get_user_cards(user):
+    cards = Card.query.filter_by(created_by=user.id).all()
+
+    res = {
+        'cards': cards_share_schema.dump(cards)
+    }
+
+    return jsonify(res)
+
+@main.route('/collections', methods=['GET'])
+@token_required
+def get_user_collections(user):
+    collections = Collection.query.filter_by(created_by=user.id).all()
+
+    res = {
+        'collections': collections_share_schema.dump(collections)
+    }
+
+    return jsonify(res)

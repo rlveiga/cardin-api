@@ -7,6 +7,13 @@ class CardSchema(ma.Schema):
 card_share_schema = CardSchema()
 cards_share_schema = CardSchema(many=True)
 
+class CollectionSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'name', 'created_at', 'created_by')
+
+collection_share_schema = CollectionSchema()
+collections_share_schema = CollectionSchema(many=True)
+
 class UserSchema(ma.Schema):
     class Meta:
         fields = ('id', 'username')
