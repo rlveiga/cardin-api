@@ -232,11 +232,19 @@ def delete_collection(user, collection_id):
         return jsonify(res), 404
 
     else:
-        db.session.delete(collection)
-        db.session.commit()
+        if collection.created_by != user.id:
+            res = {
+                'message': 'You do not own this collection'
+            }
 
-        res = {
-            'message': 'Collection deleted'
-        }
+            return jsonify(res), 401
+            
+        else:
+            db.session.delete(collection)
+            db.session.commit()
 
-        return jsonify(res), 200
+            res = {
+                'message': 'Collection deleted'
+            }
+
+            return jsonify(res), 200

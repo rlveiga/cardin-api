@@ -37,8 +37,10 @@ def init_db():
     db.session.commit()
 
     collection1 = Collection(name='Test collection', created_by=user.id)
+    collection2 = Collection(name="Steve's collection", created_by=user2.id)
 
     db.session.add(collection1)
+    db.session.add(collection2)
     db.session.commit()
 
     card1 = Card(card_type='black', name='I am starting to feel a', collection_id=collection1.id, created_by=user.id)
