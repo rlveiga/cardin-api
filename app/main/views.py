@@ -170,4 +170,3 @@ def leave_room(user, room_id):
         response = room.remove_player(user.id)
 
         return jsonify(response)
-
