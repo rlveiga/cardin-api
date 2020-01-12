@@ -218,3 +218,25 @@ def create_collection(user):
     }
 
     return jsonify(res), 201
+
+@main.route('/collections/<collection_id>', methods=['DELETE'])
+@token_required
+def delete_collection(user, collection_id):
+    collection = Collection.query.filter_by(id=collection_id).first()
+
+    if collection is None:
+        res = {
+            'message': 'Collection not found'
+        }
+
+        return jsonify(res), 404
+
+    else:
+        db.session.delete(collection)
+        db.session.commit()
+
+        res = {
+            'message': 'Collection deleted'
+        }
+
+        return jsonify(res), 200
