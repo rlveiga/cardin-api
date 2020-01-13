@@ -49,7 +49,6 @@ def test_get_cards_from_collection(test_client, init_db, token):
 
     assert response.status_code == 200
     
-    assert data['name'] == 'Test collection'
     assert type(data['cards']) is list
 
 def test_get_cards_from_unexisting_collection(test_client, init_db, token):

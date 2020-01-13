@@ -224,6 +224,7 @@ def create_collection(user):
 def delete_collection(user, collection_id):
     collection = Collection.query.filter_by(id=collection_id).first()
 
+    # Repeating code here
     if collection is None:
         res = {
             'message': 'Collection not found'
@@ -232,6 +233,8 @@ def delete_collection(user, collection_id):
         return jsonify(res), 404
 
     else:
+        # Repeating code again, should create a wrapper that
+        # checks if user actually owns the collection
         if collection.created_by != user.id:
             res = {
                 'message': 'You do not own this collection'
@@ -249,3 +252,30 @@ def delete_collection(user, collection_id):
             }
 
             return jsonify(res), 200
+
+@main.route('/collections/<collection_id>/cards', methods=['GET'])
+@token_required
+def get_cards_from_collection(user, collection_id):
+    collection = Collection.query.filter_by(id=collection_id).first()
+
+    if collection is None:
+        res = {
+            'message': 'Collection not found'
+        }
+
+        return jsonify(res), 404
+
+    else:
+        if collection.created_by != user.id:
+            res = {
+                'message': 'You do not own this collection'
+            }
+
+            return jsonify(res), 401
+
+        else:
+            res = {
+                'cards': cards_share_schema.dump(collection.cards)
+            }
+
+            return jsonify(res)
