@@ -14,7 +14,14 @@ def test_create_card(test_client, init_db, token):
     assert data['card']['created_by'] == 1
 
 def test_delete_card(test_client, init_db, token):
-    pass
+    response = test_client.delete('/cards/3', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 200
+
+    assert data['message'] == 'Card deleted'
+    assert data['card'] == {}
 
 def test_delete_unexisting_card(test_client, init_db, token):
     pass

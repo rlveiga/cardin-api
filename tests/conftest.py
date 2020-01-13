@@ -47,7 +47,9 @@ def init_db():
 
     card1 = Card(card_type='black', name='I am starting to feel', collection_id=collection1.id, created_by=user1.id)
     card2 = Card(card_type='white', name='Social justice', collection_id=collection2.id, created_by=user2.id)
-    
+    card3 = Card(card_type='white', name='Deletable card', collection_id=collection1.id, created_by=user1.id)
+    card4 = Card(card_type='white', name='Undeletable card', collection_id=collection2.id, created_by=user2.id)
+
     db.session.add(card1)
     db.session.add(card2)
     db.session.commit()
