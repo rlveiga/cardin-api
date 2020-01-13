@@ -201,6 +201,37 @@ def create_card(user):
 
         return jsonify(res), 422
 
+@main.route('/cards/<card_id>', methods=['DELETE'])
+@token_required
+def delete_card(user, card_id):
+    card = Card.query.filter_by(id=card_id).first()
+
+    if card is None:
+        res = {
+            'message': 'Card not found'
+        }
+
+        return jsonify(res), 404
+
+    else:
+        if card.created_by != user.id:
+            res = {
+                'message': 'You do not own this card'
+            }
+
+            return jsonify(res), 401
+
+        else:
+            db.session.delete(card)
+            db.session.commit()
+
+            res = {
+                'message': 'Card deleted',
+                'card': card_share_schema.dump(Card.query.filter_by(id=card_id).first())
+            }
+
+            return jsonify(res)
+
 @main.route('/collections', methods=['GET'])
 @token_required
 def get_user_collections(user):

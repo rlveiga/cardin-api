@@ -43,6 +43,7 @@ def init_db():
     db.session.add(collection1)
     db.session.add(collection2)
     db.session.add(collection3)
+    
     db.session.commit()
 
     card1 = Card(card_type='black', name='I am starting to feel', collection_id=collection1.id, created_by=user1.id)
@@ -52,6 +53,9 @@ def init_db():
 
     db.session.add(card1)
     db.session.add(card2)
+    db.session.add(card3)
+    db.session.add(card4)
+
     db.session.commit()
 
     room1 = Room(code='test1', created_by=user1.id)
