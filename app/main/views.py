@@ -244,7 +244,8 @@ def delete_collection(user, collection_id):
             db.session.commit()
 
             res = {
-                'message': 'Collection deleted'
+                'message': 'Collection deleted',
+                'collection': collection_share_schema.dump(Collection.query.filter_by(id=collection_id).first())
             }
 
             return jsonify(res), 200

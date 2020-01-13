@@ -22,6 +22,7 @@ def test_delete_collection(test_client, init_db, token):
     assert response.status_code == 200
 
     assert data['message'] == 'Collection deleted'
+    assert data['collection'] == {}
 
 def test_delete_unexisting_collection(test_client, init_db, token):
     response = test_client.delete('/collections/42', headers={'access-token': token})
