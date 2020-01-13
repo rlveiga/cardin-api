@@ -39,14 +39,16 @@ def init_db():
     collection1 = Collection(name='Test collection', created_by=user1.id)
     collection2 = Collection(name="Steve's collection", created_by=user2.id)
     collection3 = Collection(name='Deletable collection', created_by=user1.id)
+    collection4 = Collection(name="Rod's collection", created_by=user1.id)
 
     db.session.add(collection1)
     db.session.add(collection2)
     db.session.add(collection3)
-    
+    db.session.add(collection4)
+
     db.session.commit()
 
-    card1 = Card(card_type='black', name='I am starting to feel', collection_id=collection1.id, created_by=user1.id)
+    card1 = Card(card_type='black', name='I am starting to feel', created_by=user1.id)
     card2 = Card(card_type='white', name='Social justice', collection_id=collection2.id, created_by=user2.id)
     card3 = Card(card_type='white', name='Deletable card', collection_id=collection1.id, created_by=user1.id)
     card4 = Card(card_type='white', name='Undeletable card', collection_id=collection2.id, created_by=user2.id)

@@ -42,7 +42,14 @@ def test_delete_unauthorized_card(test_client, init_db, token):
     assert data['message'] == 'You do not own this card'
 
 def test_add_to_collection(test_client, init_db, token):
-    pass
+    response = test_client.put('/cards/1/add_collection/4', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 200
+
+    assert data['message'] = 'Card added to collection'
+    assert data['card']['collection']['id'] = 4
 
 def test_add_to_unexisting_collection(test_client, init_db, token):
     pass
