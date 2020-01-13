@@ -26,41 +26,43 @@ def init_db():
     db.create_all()
 
     # Populate with data
-    user = User(username='rodrigo')
-    user.password = 'abc123'
+    user1 = User(username='rodrigo')
+    user1.password = 'abc123'
 
     user2 = User(username='steve')
     user2.password = 'abc123'
 
-    db.session.add(user)
+    db.session.add(user1)
     db.session.add(user2)
     db.session.commit()
 
-    collection1 = Collection(name='Test collection', created_by=user.id)
+    collection1 = Collection(name='Test collection', created_by=user1.id)
     collection2 = Collection(name="Steve's collection", created_by=user2.id)
+    collection3 = Collection(name='Deletable collection', created_by=user1.id)
 
     db.session.add(collection1)
     db.session.add(collection2)
+    db.session.add(collection3)
     db.session.commit()
 
-    card1 = Card(card_type='black', name='I am starting to feel a', collection_id=collection1.id, created_by=user.id)
-    card2 = Card(card_type='white', name='Social justice', collection_id=collection1.id, created_by=user.id)
-
+    card1 = Card(card_type='black', name='I am starting to feel', collection_id=collection1.id, created_by=user1.id)
+    card2 = Card(card_type='white', name='Social justice', collection_id=collection2.id, created_by=user2.id)
+    
     db.session.add(card1)
     db.session.add(card2)
     db.session.commit()
 
-    room1 = Room(code='test1', created_by=user.id)
+    room1 = Room(code='test1', created_by=user1.id)
     room2 = Room(code='test2', created_by=user2.id)
 
     db.session.add(room1)
     db.session.add(room2)
     db.session.commit()
 
-    join = Association(user_id=1, room_id=1)
+    join1 = Association(user_id=1, room_id=1)
     join2 = Association(user_id=2, room_id=2)
 
-    db.session.add(join)
+    db.session.add(join1)
     db.session.add(join2)
     db.session.commit()    
 
