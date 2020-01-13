@@ -33,7 +33,13 @@ def test_delete_unexisting_card(test_client, init_db, token):
     assert data['message'] == 'Card not found'
 
 def test_delete_unauthorized_card(test_client, init_db, token):
-    pass
+    response = test_client.delete('/cards/4', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 401
+
+    assert data['message'] == 'You do not own this card'
 
 def test_add_to_collection(test_client, init_db, token):
     pass
