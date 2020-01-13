@@ -2,7 +2,7 @@ from app import ma
 
 class CardSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'card_type')
+        fields = ('id', 'name', 'card_type', 'created_by')
 
 card_share_schema = CardSchema()
 cards_share_schema = CardSchema(many=True)

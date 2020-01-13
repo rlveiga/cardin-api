@@ -4,7 +4,7 @@ from app.models.user import User
 from app.models.room import Room, Association
 from app.models.card import Card
 from app.models.collection import Collection
-from app.models.schemas import cards_share_schema, collection_share_schema, user_share_schema, users_share_schema, room_share_schema
+from app.models.schemas import card_share_schema, cards_share_schema, collection_share_schema, user_share_schema, users_share_schema, room_share_schema
 from . import main
 from functools import wraps
 import jwt
@@ -178,6 +178,28 @@ def get_user_cards(user):
     }
 
     return jsonify(res)
+
+@main.route('/cards', methods=['POST'])
+@token_required
+def create_card(user):
+    body = request.get_json()
+
+    if(body['name'] and body['card_type']):
+        new_card = Card(name=body['name'], card_type=body['card_type'], created_by=user.id)
+
+        res = {
+            'message': 'Card created',
+            'card': card_share_schema.dump(new_card)
+        }
+
+        return jsonify(res)
+
+    else:
+        res = {
+            'message': 'Missing attributes'
+        }
+
+        return jsonify(res), 422
 
 @main.route('/collections', methods=['GET'])
 @token_required
