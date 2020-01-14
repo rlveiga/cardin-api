@@ -1,8 +1,17 @@
 import json
 from app.models.room import Room
 
+def test_get_user_room(test_client, init_db, token):
+    response = test_client.get('/rooms/', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 200
+    
+    assert type(data['room']) is dict
+    
 def test_create_room(test_client, init_db, token):
-    response = test_client.post('/rooms', json=dict(code='abcde'), headers={'access-token': token})
+    response = test_client.post('/rooms/', json=dict(code='abcde'), headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -51,7 +60,6 @@ def test_leave_room(test_client, init_db, token):
     data = json.loads(response.data)
 
     assert response.status_code == 200
-    assert data['success'] == True
 
 def test_leave_room_not_allowed(test_client, init_db, token):
     response = test_client.delete('/rooms/2', headers={'access-token': token})
@@ -59,7 +67,6 @@ def test_leave_room_not_allowed(test_client, init_db, token):
     data = json.loads(response.data)
 
     assert response.status_code == 200
-    assert data['success'] == False
 
 def test_leave_unexisting_room(test_client, init_db, token):
     response = test_client.delete('/rooms/45', headers={'access-token': token})
@@ -67,5 +74,4 @@ def test_leave_unexisting_room(test_client, init_db, token):
     data = json.loads(response.data)
 
     assert response.status_code == 404
-    assert data['success'] == False
     assert data['message'] == 'Room not found'

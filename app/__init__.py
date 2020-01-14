@@ -16,8 +16,14 @@ def create_app(config_name):
 
 	db.init_app(app)
 
-	from .main import main as main_blueprint
+	from .auth import auth as auth_blueprint
+	from .card import card as card_blueprint
+	from .collection import collection as collection_blueprint
+	from .room import room as room_blueprint
 
-	app.register_blueprint(main_blueprint)
+	app.register_blueprint(auth_blueprint)
+	app.register_blueprint(card_blueprint)
+	app.register_blueprint(collection_blueprint)
+	app.register_blueprint(room_blueprint)
 
 	return app

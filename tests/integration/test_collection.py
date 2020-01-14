@@ -4,7 +4,7 @@ from app.models.card import Card
 from app.models.collection import Collection
 
 def test_create_collection(test_client, init_db, token):
-    response = test_client.post('/collections', json=dict(name='Random collection'), headers={'access-token': token})
+    response = test_client.post('/collections/', json=dict(name='Random collection'), headers={'access-token': token})
 
     data = json.loads(response.data)
 

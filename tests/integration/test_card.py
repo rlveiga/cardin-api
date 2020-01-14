@@ -1,7 +1,7 @@
 import json
 
 def test_create_card(test_client, init_db, token):
-    response = test_client.post('/cards', json=dict(card_type='black', name='Something clever'), headers={'access-token': token})
+    response = test_client.post('/cards/', json=dict(card_type='black', name='Something clever'), headers={'access-token': token})
 
     data = json.loads(response.data)
 

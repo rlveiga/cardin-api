@@ -13,8 +13,6 @@ app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 manager = Manager(app)
 Migrate = Migrate(app, db)
 
-# initialize db migrate variable here
-
 def make_shell_context():
 	return dict(app=app, db=db, User=User, Card=Card, Collection=Collection, Room=Room, Association=Association)
 
