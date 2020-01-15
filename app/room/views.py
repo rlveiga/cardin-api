@@ -71,7 +71,6 @@ def get_room_info(user, room_code):
             })
 
         res = {
-            'sucess': True,
             'room': {
                 'data': room_share_schema.dump(room),
                 'users': players_list

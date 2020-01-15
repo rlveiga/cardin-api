@@ -17,6 +17,9 @@ def create_card(user):
     if(body['name'] and body['card_type']):
         new_card = Card(name=body['name'], card_type=body['card_type'], created_by=user.id)
 
+        db.session.add(new_card)
+        db.session.commit()
+
         res = {
             'message': 'Card created',
             'card': card_share_schema.dump(new_card)
@@ -80,15 +83,16 @@ def add_card_to_collection(user, card_id, collection_id):
     collection = Collection.query.filter_by(id=collection_id).first()
 
     if card is None:
+        print('a')
         res = {
-            'Card not found'
+            'message': 'Card not found'
         }
 
         return jsonify(res), 404
 
     elif collection is None:
         res = {
-            'Collection not found'
+            'message': 'Collection not found'
         }
 
         return jsonify(res), 404
