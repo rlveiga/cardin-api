@@ -89,9 +89,35 @@ def join_room(user, room_code):
         return jsonify({'message': 'Room not found'}), 404
 
     else:
-        response = room.add_player(user.id)
+        if len(room.users) < 4:
+            if user in room.users:
+                res = {
+                    'message': 'User is already in this room'
+                }
 
-        return jsonify(response)
+                return jsonify(res), 422
+            
+            else:
+                new_join = Association(user_id=user.id, room_id=room.id)
+
+                db.session.add(new_join)
+                db.session.commit()
+
+                res = {
+                    'room': {
+                        'data': room_share_schema.dump(room),
+                        'users': users_share_schema.dump(room.users)
+                    }
+                }
+
+                return jsonify(res), 200
+
+        else:
+            res = {
+                'message': 'Room is full'
+            }
+
+            return jsonify(res), 422
 
 @room.route('/<room_id>', methods=['DELETE'])
 @token_required
@@ -102,6 +128,21 @@ def leave_room(user, room_id):
         return jsonify({'message': 'Room not found'}), 404
 
     else:
-        response = room.remove_player(user.id)
+        if user in room.users:
+            association = Association.query.filter_by(room_id=room.id, user_id=user.id).first()
 
-        return jsonify(response)
+            db.session.delete(association)
+            db.session.commit()
+            
+            res = {
+                'message': 'User removed'
+            }
+
+            return jsonify(res), 200
+
+        else:
+            res = {
+                'message': 'User is not in this room'
+            }
+
+            return jsonify(res), 422

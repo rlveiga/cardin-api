@@ -58,44 +58,4 @@ class Room(db.Model):
 
     #shuffles and distributes cards
     def shuffle_deck(self, user_id):
-        pass        
-
-    def add_player(self, user_id):
-        if len(self.users) < 4:
-            new_join = Association(user_id=user_id, room_id=self.id)
-
-            db.session.add(new_join)
-            db.session.commit()
-
-            return {
-                'success': True,
-                'room': {
-                    'data': room_share_schema.dump(self),
-                    'users': users_share_schema.dump(self.users)
-                }
-            }
-
-        else:
-            return {
-                'success': False,
-                'message': 'Room is full'
-            }
-    
-    def remove_player(self, user_id):
-        for u in self.users:
-            if u.id == user_id:
-                association = Association.query.filter_by(room_id=self.id, user_id=user_id).first()
-
-                db.session.delete(association)
-                db.session.commit()
-                
-                return {
-                    'success': True,
-                    'message': 'User removed'
-                }
-
-        else:
-            return {
-                'success': False,
-                'message': 'User is not in this room'
-            }
+        pass
