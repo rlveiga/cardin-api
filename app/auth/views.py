@@ -1,9 +1,37 @@
 from flask import jsonify, request
 
+from app import db
 from app.models.user import User
 from app.models.schemas import user_share_schema
 
 from . import auth
+
+@auth.route('/register', methods=['POST'])
+def register():
+    body = request.get_json()
+
+    existing_user = User.query.filter_by(username=body['username']).first()
+
+    if existing_user is not None:
+        res = {
+            'message': 'Username is taken'
+        }
+
+        return jsonify(res), 409
+
+    else:
+        new_user = User(username=body['username'])
+        new_user.password = body['password']
+
+        db.session.add(new_user)
+        db.session.commit()
+
+        res = {
+            'message': 'User created',
+            'user': user_share_schema.dump(new_user)
+        }
+        
+        return jsonify(res), 201
 
 @auth.route('/login', methods=['POST'])
 def login():
