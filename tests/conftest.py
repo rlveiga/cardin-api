@@ -36,15 +36,24 @@ def init_db():
     db.session.add(user2)
     db.session.commit()
 
+    default_collection1 = Collection(name="My cards", created_by=user1.id, is_deletable=False)
+    default_collection2 = Collection(name="My cards", created_by=user2.id, is_deletable=False)
+
     collection1 = Collection(name='Test collection', created_by=user1.id)
     collection2 = Collection(name="Steve's collection", created_by=user2.id)
     collection3 = Collection(name='Deletable collection', created_by=user1.id)
     collection4 = Collection(name="Rod's collection", created_by=user1.id)
 
-    db.session.add(collection1)
-    db.session.add(collection2)
-    db.session.add(collection3)
-    db.session.add(collection4)
+    collections = [
+        default_collection1,
+        default_collection2,
+        collection1,
+        collection2,
+        collection3,
+        collection4
+    ]
+
+    db.session.add_all(collections)
     db.session.commit()
 
     card1 = Card(card_type='black', name='I am starting to feel', created_by=user1.id)

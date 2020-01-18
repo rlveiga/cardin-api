@@ -15,7 +15,7 @@ def test_create_collection(test_client, init_db, token):
     assert type(data['collection']['cards']) == list
 
 def test_delete_collection(test_client, init_db, token):
-    response = test_client.delete('/collections/3', headers={'access-token': token})
+    response = test_client.delete('/collections/5', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -34,7 +34,7 @@ def test_delete_unexisting_collection(test_client, init_db, token):
     assert data['message'] == 'Collection not found'
 
 def test_delete_unauthorized_collection(test_client, init_db, token):
-    response = test_client.delete('/collections/2', headers={'access-token': token})
+    response = test_client.delete('/collections/4', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -43,7 +43,7 @@ def test_delete_unauthorized_collection(test_client, init_db, token):
     assert data['message'] == 'You do not own this collection'
 
 def test_get_cards_from_collection(test_client, init_db, token):
-    response = test_client.get('/collections/1/cards', headers={'access-token': token})
+    response = test_client.get('/collections/3/cards', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -61,7 +61,7 @@ def test_get_cards_from_unexisting_collection(test_client, init_db, token):
     assert data['message'] == 'Collection not found'
 
 def test_get_cards_from_unauthorized_collection(test_client, init_db, token):
-    response = test_client.get('/collections/2/cards', headers={'access-token': token})
+    response = test_client.get('/collections/4/cards', headers={'access-token': token})
 
     data = json.loads(response.data)
 

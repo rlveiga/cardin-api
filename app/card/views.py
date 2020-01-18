@@ -3,7 +3,7 @@ from flask import jsonify, request
 from app import db
 from app.models.card import Card, CardAssociation
 from app.models.collection import Collection
-from app.models.schemas import card_share_schema, cards_share_schema, collection_share_schema, user_share_schema, users_share_schema, room_share_schema
+from app.models.schemas import card_share_schema, cards_share_schema, collection_share_schema, collections_share_schema, user_share_schema, users_share_schema, room_share_schema
 
 from . import card
 from app.wrappers import token_required
@@ -20,9 +20,20 @@ def create_card(user):
         db.session.add(new_card)
         db.session.commit()
 
+        new_association = CardAssociation(
+            card_id=new_card.id,
+            collection_id=Collection.query.filter_by(created_by=user.id, name='My cards').first().id
+            )
+
+        db.session.add(new_association)
+        db.session.commit()
+
+        card_response = card_share_schema.dump(new_card)
+        card_response['collections'] = collections_share_schema.dump(new_card.collections)
+        
         res = {
             'message': 'Card created',
-            'card': card_share_schema.dump(new_card)
+            'card': card_response
         }
 
         return jsonify(res)
