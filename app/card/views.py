@@ -1,7 +1,7 @@
 from flask import jsonify, request
 
 from app import db
-from app.models.card import Card
+from app.models.card import Card, CardAssociation
 from app.models.collection import Collection
 from app.models.schemas import card_share_schema, cards_share_schema, collection_share_schema, user_share_schema, users_share_schema, room_share_schema
 
@@ -106,9 +106,9 @@ def add_card_to_collection(user, card_id, collection_id):
             return jsonify(res), 401
 
         else:
-            card.collection_id = collection.id
+            new_association = CardAssociation(card_id=card.id, collection_id=collection.id)
 
-            db.session.add(card)
+            db.session.add(new_association)
             db.session.commit()
 
             res = {

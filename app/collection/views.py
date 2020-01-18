@@ -15,7 +15,7 @@ def get_user_collections(user):
     collection_list = []
 
     for col in collections:
-        cards = Card.query.filter_by(collection_id=col.id).all()
+        cards = col.cards
 
         collection_list.append({
             'data': collection_share_schema.dump(col),

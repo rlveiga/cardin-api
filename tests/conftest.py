@@ -2,7 +2,7 @@ import pytest
 from app import create_app, db
 from app.models.user import User
 from app.models.room import Room, Association
-from app.models.card import Card
+from app.models.card import Card, CardAssociation
 from app.models.collection import Collection
 
 @pytest.fixture(scope='module')
@@ -45,19 +45,25 @@ def init_db():
     db.session.add(collection2)
     db.session.add(collection3)
     db.session.add(collection4)
-
     db.session.commit()
 
     card1 = Card(card_type='black', name='I am starting to feel', created_by=user1.id)
-    card2 = Card(card_type='white', name='Social justice', collection_id=collection2.id, created_by=user2.id)
-    card3 = Card(card_type='white', name='Deletable card', collection_id=collection1.id, created_by=user1.id)
-    card4 = Card(card_type='white', name='Undeletable card', collection_id=collection2.id, created_by=user2.id)
+    card2 = Card(card_type='white', name='Social justice', created_by=user2.id)
+    card3 = Card(card_type='white', name='Deletable card', created_by=user1.id)
+    card4 = Card(card_type='white', name='Undeletable card', created_by=user2.id)
 
-    db.session.add(card1)
-    db.session.add(card2)
-    db.session.add(card3)
-    db.session.add(card4)
+    cards = [card1, card2, card3, card4]
 
+    db.session.add_all(cards)
+    db.session.commit()
+
+    card_association1 = CardAssociation(card_id=card2.id, collection_id=collection2.id)
+    card_association2 = CardAssociation(card_id=card3.id, collection_id=collection1.id)
+    card_association3 = CardAssociation(card_id=card4.id, collection_id=collection2.id)
+
+    card_associations = [card_association1, card_association2, card_association3]
+
+    db.session.add_all(card_associations)
     db.session.commit()
 
     room1 = Room(code='test1', created_by=user1.id)

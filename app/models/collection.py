@@ -6,7 +6,7 @@ class Collection(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), nullable=False)
-    cards = db.relationship('Card', backref='collection')
+    cards = db.relationship("Card", secondary='card_association')
     created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)
     created_by = db.Column(db.Integer)
 
