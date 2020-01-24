@@ -9,7 +9,7 @@ class Collection(db.Model):
     cards = db.relationship("Card", secondary='card_association')
     is_deletable = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)
-    created_by = db.Column(db.Integer)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def get_cards(self):
         pass

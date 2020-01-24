@@ -40,12 +40,13 @@ def test_delete_unauthorized_card(test_client, init_db, token):
 
     data = json.loads(response.data)
 
-    assert response.status_code == 401
+    assert response.status_code == 403
 
     assert data['message'] == 'You do not own this card'
 
+# Add to collection tests
 def test_add_to_collection(test_client, init_db, token):
-    response = test_client.put('/cards/1/add_collection/6', headers={'access-token': token})
+    response = test_client.post('/cards/1/add_collection/6', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -53,8 +54,17 @@ def test_add_to_collection(test_client, init_db, token):
 
     assert data['message'] == 'Card added to collection'
 
+def test_add_to_collection_again(test_client, init_db, token):
+    response = test_client.post('/cards/1/add_collection/6', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 409
+
+    assert data['message'] == 'Card already belongs to this collection'
+
 def test_add_to_unexisting_collection(test_client, init_db, token):
-    response = test_client.put('/cards/1/add_collection/42', headers={'access-token': token})
+    response = test_client.post('/cards/1/add_collection/42', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -63,7 +73,7 @@ def test_add_to_unexisting_collection(test_client, init_db, token):
     assert data['message'] == 'Collection not found'
 
 def test_add_unexisting_card_to_collection(test_client, init_db, token):
-    response = test_client.put('/cards/42/add_collection/3', headers={'access-token': token})
+    response = test_client.post('/cards/42/add_collection/3', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -72,28 +82,74 @@ def test_add_unexisting_card_to_collection(test_client, init_db, token):
     assert data['message'] == 'Card not found'
 
 def test_add_unauthorized_card_to_collection(test_client, init_db, token):
-    pass
-
-def test_add_to_unauthorized_collection(test_client, init_db, token):
-    response = test_client.put('/cards/1/add_collection/4', headers={'access-token': token})
+    response = test_client.post('/cards/2/add_collection/3', headers={'access-token': token})
 
     data = json.loads(response.data)
 
-    assert response.status_code == 401
+    assert response.status_code == 403
+
+    assert data['message'] == 'You do not own this card'
+
+def test_add_to_unauthorized_collection(test_client, init_db, token):
+    response = test_client.post('/cards/1/add_collection/4', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 403
 
     assert data['message'] == 'You do not own this collection'
 
+# Remove from collection tests
 def test_remove_from_collection(test_client, init_db, token):
-    pass
+    response = test_client.delete('/cards/1/remove_collection/6', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 200
+
+    assert data['message'] == 'Card removed from collection'
+
+def test_remove_from_collection_again(test_client, init_db, token):
+    response = test_client.delete('/cards/1/remove_collection/6', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 404
+
+    assert data['message'] == 'Card does not belong to this collection'
 
 def test_remove_from_unexisting_collection(test_client, init_db, token):
-    pass
+    response = test_client.delete('/cards/1/remove_collection/42', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 404
+
+    assert data['message'] == 'Collection not found'
 
 def test_remove_unexisting_card_from_collection(test_client, init_db, token):
-    pass
+    response = test_client.delete('/cards/42/remove_collection/6', headers={'access-token': token})
 
-def test_remove_unauthorized_card_to_collection(test_client, init_db, token):
-    pass
+    data = json.loads(response.data)
+
+    assert response.status_code == 404
+
+    assert data['message'] == 'Card not found'
+
+def test_remove_unauthorized_card_from_collection(test_client, init_db, token):
+    response = test_client.delete('/cards/2/remove_collection/6', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 403
+
+    assert data['message'] == 'You do not own this card'
 
 def test_remove_from_unauthorized_collection(test_client, init_db, token):
-    pass
+    response = test_client.delete('/cards/1/remove_collection/4', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 403
+
+    assert data['message'] == 'You do not own this collection'

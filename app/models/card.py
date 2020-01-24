@@ -17,4 +17,6 @@ class Card(db.Model):
     card_type = db.Column(db.String(16), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)
     created_by = db.Column(db.Integer)
+
+    # Use yield to require less work
     collections = db.relationship("Collection", secondary='card_association')

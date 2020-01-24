@@ -10,6 +10,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False)
     password_hash = db.Column(db.String(128))
+    collections = db.relationship('Collection')
     
     @property
     def password(self):

@@ -2,7 +2,8 @@ from flask import jsonify, request
 
 from app import db
 from app.models.user import User
-from app.models.schemas import user_share_schema
+from app.models.collection import Collection
+from app.models.schemas import collections_share_schema, user_share_schema
 
 from . import auth
 
@@ -26,9 +27,17 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
+        default_collection = Collection(name='My cards', created_by=new_user.id, is_deletable=False)
+
+        db.session.add(default_collection)
+        db.session.commit()
+
+        user_response = user_share_schema.dump(new_user)
+        user_response['collections'] = collections_share_schema.dump(new_user.collections)
+
         res = {
             'message': 'User created',
-            'user': user_share_schema.dump(new_user)
+            'user': user_response
         }
         
         return jsonify(res), 201
