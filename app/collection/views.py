@@ -3,7 +3,7 @@ from flask import jsonify, request
 from app import db
 from app.models.card import Card
 from app.models.collection import Collection
-from app.models.schemas import cards_share_schema, collection_share_schema
+from app.models.schemas import card_share_schema, cards_share_schema, collection_share_schema, collections_share_schema
 from . import collection
 from app.wrappers import token_required
 
@@ -13,13 +13,20 @@ def get_user_collections(user):
     collections = Collection.query.filter_by(created_by=user.id).all()
 
     collection_list = []
+    cards_list = []
 
     for col in collections:
         cards = col.cards
 
+        for card in cards:
+            cards_list.append({
+                'data': card_share_schema.dump(card),
+                'collections': collections_share_schema.dump(card.collections)
+            })
+
         collection_list.append({
-            'data': collection_share_schema.dump(col),
-            'cards': cards_share_schema.dump(cards)
+            'collection': collection_share_schema.dump(col),
+            'cards': cards_list
         })
 
     res = {

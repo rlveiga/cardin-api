@@ -50,8 +50,16 @@ def create_card(user):
 def get_user_cards(user):
     cards = Card.query.filter_by(created_by=user.id).all()
 
+    cards_res = []
+
+    for card in cards:
+        cards_res.append({
+            'data': card_share_schema.dump(card),
+            'collections': collections_share_schema.dump(card.collections)
+        })
+
     res = {
-        'cards': cards_share_schema.dump(cards)
+        'cards': cards_res
     }
 
     return jsonify(res)
@@ -77,6 +85,7 @@ def delete_card(user, card_id):
             return jsonify(res), 403
 
         else:
+            CardAssociation.query.filter_by(card_id=card.id).delete()
             db.session.delete(card)
             db.session.commit()
 
