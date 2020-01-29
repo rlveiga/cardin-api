@@ -96,12 +96,10 @@ def delete_card(user, card_id):
 
             return jsonify(res)
 
-@card.route('/<card_id>/add_collection/<collection_id>', methods=['POST'])
+@card.route('/<card_id>/add_collections', methods=['POST'])
 @token_required
-def add_card_to_collection(user, card_id, collection_id):
+def add_card_to_collection(user, card_id):
     card = Card.query.filter_by(id=card_id).first()
-    collection = Collection.query.filter_by(id=collection_id).first()
-    existing_association = CardAssociation.query.filter_by(card_id=card_id, collection_id=collection_id).first()
 
     if card is None:
         res = {
@@ -110,27 +108,34 @@ def add_card_to_collection(user, card_id, collection_id):
 
         return jsonify(res), 404
 
-    elif collection is None:
+    if card.created_by != user.id:
         res = {
-            'message': 'Collection not found'
+            'message': 'You do not own this card'
         }
 
-        return jsonify(res), 404
+        return jsonify(res), 403   
 
-    elif existing_association is not None:
-        res = {
-            'message': 'Card already belongs to this collection'
-        }
+    body = request.get_json()
+    card_response = card_share_schema.dump(card)
+    card_response['collections'] = collections_share_schema.dump(card.collections)
 
-        return jsonify(res), 409
+    for element in body['collections']:
+        collection = Collection.query.filter_by(id=element['id']).first()
+        existing_association = CardAssociation.query.filter_by(card_id=card_id, collection_id=element['id']).first()
 
-    else:
-        if card.created_by != user.id:
+        if collection is None:
             res = {
-                'message': 'You do not own this card'
+                'message': 'Collection not found'
             }
 
-            return jsonify(res), 403
+            return jsonify(res), 404
+
+        elif existing_association is not None:
+            res = {
+                'message': 'Card already belongs to this collection'
+            }
+
+            return jsonify(res), 409
 
         elif collection.created_by != user.id:
             res = {
@@ -140,18 +145,17 @@ def add_card_to_collection(user, card_id, collection_id):
             return jsonify(res), 403
 
         else:
-            existing_association
-            new_association = CardAssociation(card_id=card.id, collection_id=collection.id)
+            new_association = CardAssociation(card_id=card.id, collection_id=element['id'])
 
             db.session.add(new_association)
-            db.session.commit()
+            card_response['collections'].append(collection_share_schema.dump(collection))
 
-            res = {
-                'message': 'Card added to collection',
-                'card': card_share_schema.dump(card)
-            }
+    res = {
+        'message': 'Card added to collections',
+        'card': card_response
+    }
 
-            return jsonify(res)
+    return jsonify(res)
 
 @card.route('/<card_id>/remove_collection/<collection_id>', methods=['DELETE'])
 @token_required
