@@ -12,25 +12,33 @@ from app.wrappers import token_required
 def get_user_collections(user):
     collections = Collection.query.filter_by(created_by=user.id).all()
 
-    collection_list = []
-    cards_list = []
+    data = []
 
-    for col in collections:
-        cards = col.cards
+    for e in collections:
+      cards = e.cards
+      e = collection_share_schema.dump(e)
+      e['cards'] = cards_share_schema.dump(cards)
 
-        for card in cards:
-            cards_list.append({
-                'data': card_share_schema.dump(card),
-                'collections': collections_share_schema.dump(card.collections)
-            })
+      data.append(e)
 
-        collection_list.append({
-            'collection': collection_share_schema.dump(col),
-            'cards': cards_list
-        })
+    # for col in collections:
+    #     cards = col.cards
+
+    #     for card in cards:
+    #         cards_list.append({
+    #             'data': card_share_schema.dump(card),
+    #             'collections': collections_share_schema.dump(card.collections)
+    #         })
+
+    #     collection_list.append({
+    #         'collection': collection_share_schema.dump(col),
+    #         'cards': cards_list
+    #     })
+
+    print(data)
 
     res = {
-        'collections': collection_list
+        'collections': data
     }
 
     return jsonify(res)
