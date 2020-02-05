@@ -57,7 +57,7 @@ def test_get_user_collections(test_client, init_db, token):
     assert type(data['collections']) is list
     assert type(data['collections'][0]) is dict
 
-    assert type(data['collections'][0]['collection']) is dict
+    assert type(data['collections'][0]['id']) is int
     assert type(data['collections'][0]['cards']) is list
 
 def test_get_user_cards(test_client, init_db, token):

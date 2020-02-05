@@ -23,7 +23,7 @@ def get_card_info(user, card_id):
   } 
 
   return jsonify(res)
-
+  
 @card.route('/', methods=['POST'])
 @token_required
 def create_card(user):
@@ -65,16 +65,8 @@ def create_card(user):
 def get_user_cards(user):
     cards = Card.query.filter_by(created_by=user.id).all()
 
-    cards_res = []
-
-    for card in cards:
-        cards_res.append({
-            'data': card_share_schema.dump(card),
-            'collections': collections_share_schema.dump(card.collections)
-        })
-
     res = {
-        'cards': cards_res
+        'cards': cards_share_schema.dump(cards)
     }
 
     return jsonify(res)
@@ -100,7 +92,6 @@ def delete_card(user, card_id):
             return jsonify(res), 403
 
         else:
-            CardAssociation.query.filter_by(card_id=card.id).delete()
             db.session.delete(card)
             db.session.commit()
 
@@ -111,10 +102,12 @@ def delete_card(user, card_id):
 
             return jsonify(res)
 
-@card.route('/<card_id>/add_collections', methods=['POST'])
+@card.route('/<card_id>/add_collection/<collection_id>', methods=['POST'])
 @token_required
-def add_card_to_collection(user, card_id):
+def add_card_to_collection(user, card_id, collection_id):
     card = Card.query.filter_by(id=card_id).first()
+    collection = Collection.query.filter_by(id=collection_id).first()
+    existing_association = CardAssociation.query.filter_by(card_id=card_id, collection_id=collection_id).first()
 
     if card is None:
         res = {
@@ -123,32 +116,27 @@ def add_card_to_collection(user, card_id):
 
         return jsonify(res), 404
 
-    if card.created_by != user.id:
+    elif collection is None:
         res = {
-            'message': 'You do not own this card'
+            'message': 'Collection not found'
         }
 
-        return jsonify(res), 403   
+        return jsonify(res), 404
 
-    body = request.get_json()
+    elif existing_association is not None:
+        res = {
+            'message': 'Card already belongs to this collection'
+        }
 
-    for element in body['collections']:
-        collection = Collection.query.filter_by(id=element['id']).first()
-        existing_association = CardAssociation.query.filter_by(card_id=card_id, collection_id=element['id']).first()
+        return jsonify(res), 409
 
-        if collection is None:
+    else:
+        if card.created_by != user.id:
             res = {
-                'message': 'Collection not found'
+                'message': 'You do not own this card'
             }
 
-            return jsonify(res), 404
-
-        elif existing_association is not None:
-            res = {
-                'message': 'Card already belongs to this collection'
-            }
-
-            return jsonify(res), 409
+            return jsonify(res), 403
 
         elif collection.created_by != user.id:
             res = {
@@ -158,26 +146,24 @@ def add_card_to_collection(user, card_id):
             return jsonify(res), 403
 
         else:
-            new_association = CardAssociation(card_id=card.id, collection_id=element['id'])
+            existing_association
+            new_association = CardAssociation(card_id=card.id, collection_id=collection.id)
 
             db.session.add(new_association)
+            db.session.commit()
 
-    db.session.commit()
+            res = {
+                'message': 'Card added to collection',
+                'card': card_share_schema.dump(card)
+            }
 
-    card_response = card_share_schema.dump(card)
-    card_response['collections'] = collections_share_schema.dump(card.collections)
+            return jsonify(res)
 
-    res = {
-        'message': 'Card added to collections',
-        'card': card_response
-    }
-
-    return jsonify(res)
-
-@card.route('/<card_id>/remove_collections', methods=['DELETE'])
+@card.route('/<card_id>/remove_collection/<collection_id>', methods=['DELETE'])
 @token_required
-def remove_card_from_collection(user, card_id):
+def remove_card_from_collection(user, card_id, collection_id):
     card = Card.query.filter_by(id=card_id).first()
+    collection = Collection.query.filter_by(id=collection_id).first()
 
     if card is None:
         res = {
@@ -186,25 +172,20 @@ def remove_card_from_collection(user, card_id):
 
         return jsonify(res), 404
 
-    elif card.created_by != user.id:
+    elif collection is None:
         res = {
-            'message': 'You do not own this card'
+            'message': 'Collection not found'
         }
 
-        return jsonify(res), 403
+        return jsonify(res), 404
 
-    body = request.get_json()
-
-    for element in body['collections']:
-        collection = Collection.query.filter_by(id=element['id']).first()
-        existing_association = CardAssociation.query.filter_by(card_id=card_id, collection_id=element['id']).first()
-
-        if collection is None:
+    else:
+        if card.created_by != user.id:
             res = {
-                'message': 'Collection not found'
+                'message': 'You do not own this card'
             }
 
-            return jsonify(res), 404
+            return jsonify(res), 403
 
         elif collection.created_by != user.id:
             res = {
@@ -213,24 +194,22 @@ def remove_card_from_collection(user, card_id):
 
             return jsonify(res), 403
 
-        elif existing_association is None:
-            res = {
-                'message': 'Card does not belong to this collection'
-            }
-
-            return jsonify(res), 404
-
         else:
-            CardAssociation.query.filter_by(card_id=card.id, collection_id=element['id']).delete()
+            removed_association = CardAssociation.query.filter_by(card_id=card.id, collection_id=collection_id).first()
 
-    db.session.commit()
+            if removed_association is None:
+                res = {
+                    'message': 'Card does not belong to this collection'
+                }
 
-    card_response = card_share_schema.dump(card)
-    card_response['collections'] = collections_share_schema.dump(card.collections)
+                return jsonify(res), 404
 
-    res = {
-        'message': 'Card removed from collections',
-        'card': card_response
-    }
+            else:
+                db.session.delete(removed_association)
+                db.session.commit()
 
-    return jsonify(res)
+                res = {
+                    'message': 'Card removed from collection'
+                }
+
+                return jsonify(res)
