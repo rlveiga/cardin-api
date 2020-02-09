@@ -9,8 +9,9 @@ def test_get_card_info(test_client, init_db, token):
     assert data['card']['name'] == 'Deletable card'
     assert len(data['collections']) == 1
     
+# Creates card, adding it to a collection (plus the default collection) if necessary
 def test_create_card(test_client, init_db, token):
-    response = test_client.post('/cards/', json=dict(card_type='black', name='Something clever'), headers={'access-token': token})
+    response = test_client.post('/cards/', json=dict(card_type='black', name='Something clever', collection_id=3), headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -23,6 +24,7 @@ def test_create_card(test_client, init_db, token):
     assert data['card']['created_by'] == 1
     assert type(data['card']['collections']) == list
     assert data['card']['collections'][0]['name'] == 'My cards'
+    assert data['card']['collections'][1]['name'] == 'Test collection'
     assert data['card']['collections'][0]['created_by'] == 1
 
 def test_delete_card(test_client, init_db, token):

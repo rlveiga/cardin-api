@@ -7,41 +7,53 @@ from app.models.schemas import card_share_schema, cards_share_schema, collection
 from . import collection
 from app.wrappers import token_required
 
+@collection.route('/<collection_id>', methods=['GET'])
+@token_required
+def get_collection_info(user, collection_id):
+  collection = Collection.query.filter_by(id=collection_id).first()
+
+  if collection is None:
+    res = {
+      'message': 'Collection not found'
+    }
+
+    return jsonify(res), 404
+
+  if collection.created_by != user.id:
+    res = {
+      'message': 'You do not own this collection'
+    }
+
+    return jsonify(res), 403
+
+  collection_obj = collection_share_schema.dump(collection)
+  collection_obj['cards'] = cards_share_schema.dump(collection.cards)
+
+  res = {
+    'collection': collection_obj
+  }
+
+  return jsonify(res)
+
 @collection.route('/', methods=['GET'])
 @token_required
 def get_user_collections(user):
-    collections = Collection.query.filter_by(created_by=user.id).all()
+  collections = Collection.query.filter_by(created_by=user.id).all()
 
-    data = []
+  data = []
 
-    for e in collections:
-      cards = e.cards
-      e = collection_share_schema.dump(e)
-      e['cards'] = cards_share_schema.dump(cards)
+  for e in collections:
+    card_count = len(e.cards)
+    e = collection_share_schema.dump(e)
+    e['card_count'] = card_count
 
-      data.append(e)
+    data.append(e)
 
-    # for col in collections:
-    #     cards = col.cards
+  res = {
+      'collections': data
+  }
 
-    #     for card in cards:
-    #         cards_list.append({
-    #             'data': card_share_schema.dump(card),
-    #             'collections': collections_share_schema.dump(card.collections)
-    #         })
-
-    #     collection_list.append({
-    #         'collection': collection_share_schema.dump(col),
-    #         'cards': cards_list
-    #     })
-
-    print(data)
-
-    res = {
-        'collections': data
-    }
-
-    return jsonify(res)
+  return jsonify(res)
 
 @collection.route('/', methods=['POST'])
 @token_required

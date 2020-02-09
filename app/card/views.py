@@ -35,13 +35,26 @@ def create_card(user):
         db.session.add(new_card)
         db.session.commit()
 
+        default_collection_id = Collection.query.filter_by(created_by=user.id, name='My cards').first().id
+
+        # Add card to default collection, mandatory
         new_association = CardAssociation(
             card_id=new_card.id,
-            collection_id=Collection.query.filter_by(created_by=user.id, name='My cards').first().id
+            collection_id=default_collection_id
             )
 
         db.session.add(new_association)
         db.session.commit()
+
+        # Add card to another collection, the one in which it was created
+        if(body['collection_id'] != default_collection_id):
+          optional_association = CardAssociation(
+            card_id=new_card.id,
+            collection_id=body['collection_id']
+            )
+
+          db.session.add(optional_association)
+          db.session.commit()
 
         card_response = card_share_schema.dump(new_card)
         card_response['collections'] = collections_share_schema.dump(new_card.collections)
