@@ -1,7 +1,7 @@
 import pytest
 from app import create_app, db
 from app.models.user import User
-from app.models.room import Room, Association
+from app.models.room import Room, RoomAssociation
 from app.models.card import Card, CardAssociation
 from app.models.collection import Collection
 
@@ -77,13 +77,13 @@ def init_db():
 
     room1 = Room(code='test1', created_by=user1.id)
     room2 = Room(code='test2', created_by=user2.id)
+    room3 = Room(code='test3', created_by=user2.id)
 
-    db.session.add(room1)
-    db.session.add(room2)
+    db.session.add_all([room1, room2, room3])
     db.session.commit()
 
-    join1 = Association(user_id=1, room_id=1)
-    join2 = Association(user_id=2, room_id=2)
+    join1 = RoomAssociation(user_id=1, room_id=1)
+    join2 = RoomAssociation(user_id=2, room_id=2)
 
     db.session.add(join1)
     db.session.add(join2)

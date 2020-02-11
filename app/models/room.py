@@ -6,13 +6,13 @@ from flask import jsonify
 
 import json
 
-class Association(db.Model):
-    __tablename__ = 'association'
+class RoomAssociation(db.Model):
+    __tablename__ = 'room_association'
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'))
-    date_joined = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
 
 class Room(db.Model):
     __tablename__ = 'rooms'
@@ -23,7 +23,7 @@ class Room(db.Model):
     created_by = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
     data = db.Column(db.String(1024))
-    users = db.relationship("User", secondary='association')
+    users = db.relationship("User", secondary='room_association')
 
     def init_game(self, collection):
         self.reset_game()
