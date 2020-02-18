@@ -5,42 +5,6 @@ import pytest
 from app import db
 from app.models.room import Room, RoomAssociation
 
-# Creates rooms and associations for testing
-@pytest.fixture
-def init_room_db():
-  
-  # Test rooms, room1 created in conftest.py
-  room2 = Room(code='test2', created_by=1)
-  room3 = Room(code='test3', created_by=2)
-
-  rooms = [
-    room2,
-    room3
-  ]
-
-  db.session.add_all(rooms)
-  db.session.commit()
-
-  # Test room associations
-  # User 1 room association
-  room_association1 = RoomAssociation(user_id=1, room_id=2)
-
-  # User 2 room associations
-  room_association2 = RoomAssociation(user_id=2, room_id=3)
-
-  room_associations = [
-    room_association1,
-    room_association2
-  ]
-
-  db.session.add_all(room_associations)
-  db.session.commit()    
-
-  yield db # actual testing
-
-  db.session.close()
-  db.drop_all()
-
 def test_get_user_room(test_client, init_db, init_room_db, token):
     response = test_client.get('/rooms/', headers={'access-token': token})
 

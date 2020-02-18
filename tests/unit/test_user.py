@@ -47,7 +47,7 @@ def test_login_not_found(test_client, init_db):
 
     assert response.status_code == 404
 
-def test_get_user_collections(test_client, init_db, token):
+def test_get_user_collections(test_client, init_db, init_cards_collections_db, token):
     response = test_client.get('/collections/', headers={'access-token': token})
 
     data = json.loads(response.data)
@@ -59,7 +59,7 @@ def test_get_user_collections(test_client, init_db, token):
     assert type(data['collections'][0]['id']) is int
     assert type(data['collections'][0]['card_count']) is int
 
-def test_get_user_cards(test_client, init_db, token):
+def test_get_user_cards(test_client, init_db, init_cards_collections_db, token):
     response = test_client.get('/cards/', headers={'access-token': token})
 
     data = json.loads(response.data)
