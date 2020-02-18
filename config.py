@@ -16,14 +16,14 @@ class DevelopmentConfig(Config):
 
 	# Should set environment variables for database uri in the future
 
-	SQLALCHEMY_DATABASE_URI = 'postgresql://rlveiga:@localhost/challenge_dev'
+	SQLALCHEMY_DATABASE_URI = 'postgresql://rlveiga:@localhost/cardin_dev'
 
 class TestingConfig(Config):
 	TESTING = True
-	SQLALCHEMY_DATABASE_URI = 'postgresql://rlveiga:@localhost/challenge_test'
+	SQLALCHEMY_DATABASE_URI = 'postgresql://rlveiga:@localhost/cardin_test'
 
 class ProductionConfig(Config):
-	SQLALCHEMY_DATABASE_URI = 'postgresql://rlveiga:@localhost/challenge_prod'
+	SQLALCHEMY_DATABASE_URI = 'postgresql://rlveiga:@localhost/cardin_prod'
 
 config = {
 	'development': DevelopmentConfig,
