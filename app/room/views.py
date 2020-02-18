@@ -147,21 +147,28 @@ def leave_room(user, room_code):
 
     else:
         if user in room.users:
+          # Host has left the room, make room inactive
+          # and remove all players
+          if room.created_by == user.id:
+              for u in room.users:
+                u_association = RoomAssociation.query.filter_by(room_id=room.id, user_id=u.id).first()
+
+                db.session.delete(u_association)
+                
+              room.status = 'inactive'
+
+          else:
             association = RoomAssociation.query.filter_by(room_id=room.id, user_id=user.id).first()
 
             db.session.delete(association)
+          db.session.commit()
+          
+          res = {
+              'message': 'User removed',
+              'room': room_share_schema.dump(room)
+          }
 
-            if room.created_by == user.id:
-              room.status = 'inactive'
-
-            db.session.commit()
-            
-            res = {
-                'message': 'User removed',
-                'room': room_share_schema.dump(room)
-            }
-
-            return jsonify(res), 200
+          return jsonify(res), 200
 
         else:
             res = {
