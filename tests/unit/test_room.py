@@ -15,10 +15,10 @@ def test_get_user_room(test_client, init_db, init_room_db, token):
     assert type(data['room']) is dict
     assert data['room']['code'] == 'test2'
 
-def test_get_room_info(test_client, init_db, init_room_db, token):
+def test_get_room_players(test_client, init_db, init_room_db, token):
     pass
 
-def test_get_unexisting_room_info(test_client, init_db, token):
+def test_get_unexisting_room_players(test_client, init_db, token):
     response = test_client.get('/rooms/four2', headers={'access-token': token})
 
     data = json.loads(response.data)
@@ -78,6 +78,15 @@ def test_join_another_room(test_client, init_db, init_room_db, token):
     assert data['message'] == 'User already belongs to a room'
 
 def test_leave_room(test_client, init_db, init_room_db, token):
+    pass
+    # response = test_client.delete('/rooms/test2', headers={'access-token': token})
+
+    # data = json.loads(response.data)
+
+    # assert response.status_code == 200
+    # assert data['room']['status'] == 'active'
+
+def test_leave_room_as_host(test_client, init_db, init_room_db, token):
     response = test_client.delete('/rooms/test2', headers={'access-token': token})
 
     data = json.loads(response.data)

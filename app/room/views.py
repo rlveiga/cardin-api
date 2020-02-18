@@ -147,14 +147,20 @@ def leave_room(user, room_code):
 
     else:
         if user in room.users:
-          if len(room.users) == 1:
-            # Last remaining user leaves the room, 
-            # make it inactive
-            room.status = 'inactive'
+          # Host has left the room, make room inactive
+          # and remove all players
+          if room.created_by == user.id:
+              for u in room.users:
+                u_association = RoomAssociation.query.filter_by(room_id=room.id, user_id=u.id).first()
 
-          association = RoomAssociation.query.filter_by(room_id=room.id, user_id=user.id).first()
+                db.session.delete(u_association)
+                
+              room.status = 'inactive'
 
-          db.session.delete(association)
+          else:
+            association = RoomAssociation.query.filter_by(room_id=room.id, user_id=user.id).first()
+
+            db.session.delete(association)
           db.session.commit()
           
           res = {
