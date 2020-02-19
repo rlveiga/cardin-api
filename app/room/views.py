@@ -1,10 +1,20 @@
 from flask import jsonify, request
+from flask_socketio import SocketIO
 
-from app import db
+from app import socketio, db
 from app.models.room import Room, RoomAssociation
 from app.models.schemas import room_share_schema, user_share_schema, users_share_schema
 from . import room
 from app.wrappers import token_required
+
+# Testing connection events
+@socketio.on('connect')
+def greet():
+  print('Hello new user!')
+
+@socketio.on('disconnect')
+def goodbye():
+  print('Goodbye now')
 
 @room.route('/', methods=['POST'])
 @token_required

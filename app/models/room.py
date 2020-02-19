@@ -1,10 +1,12 @@
-from app import db
-from app.models.schemas import user_share_schema, users_share_schema, room_share_schema, card_share_schema
+import json
 from datetime import datetime
 from enum import Enum
+
 from flask import jsonify
 
-import json
+from app import db
+from app.models.schemas import (card_share_schema, room_share_schema,
+                                user_share_schema, users_share_schema)
 
 class RoomAssociation(db.Model):
     __tablename__ = 'room_association'
