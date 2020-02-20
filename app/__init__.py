@@ -6,28 +6,38 @@ from config import config
 
 import os
 
-db = SQLAlchemy()
-ma = Marshmallow()
+def create_app(config_name):
+  global db
+  global ma
+  global app
+  global socketio
 
-app = Flask(__name__, instance_relative_config=True)
+  db = SQLAlchemy()
+  ma = Marshmallow()
 
-ma.init_app(app)
+  app = Flask(__name__, instance_relative_config=True)
 
-app.config.from_object(config[os.getenv('FLASK_CONFIG') or 'default'])
-config[os.getenv('FLASK_CONFIG') or 'default'].init_app(app)
+  ma.init_app(app)
 
-# Creating SocketIO app here so that
-# it can be accessed by views
-socketio = SocketIO(app)
+  app.config.from_object(config[config_name])
+  config[config_name].init_app(app)
 
-db.init_app(app)
+  # Creating SocketIO app here so that
+  # it can be accessed by views
+  socketio = SocketIO(app)
 
-from .auth import auth as auth_blueprint
-from .card import card as card_blueprint
-from .collection import collection as collection_blueprint
-from .room import room as room_blueprint
+  db.init_app(app)
 
-app.register_blueprint(auth_blueprint)
-app.register_blueprint(card_blueprint)
-app.register_blueprint(collection_blueprint)
-app.register_blueprint(room_blueprint)
+  from .auth import auth as auth_blueprint
+  from .card import card as card_blueprint
+  from .collection import collection as collection_blueprint
+  from .room import room as room_blueprint
+
+  app.register_blueprint(auth_blueprint)
+  app.register_blueprint(card_blueprint)
+  app.register_blueprint(collection_blueprint)
+  app.register_blueprint(room_blueprint)
+
+  return app
+
+create_app(os.getenv('FLASK_CONFIG') or 'default')

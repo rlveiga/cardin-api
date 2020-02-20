@@ -27,9 +27,9 @@ class Room(db.Model):
     data = db.Column(db.String(1024))
     users = db.relationship("User", secondary='room_association')
 
-    def init_game(self, collection):
+    def init_game(self):
         self.reset_game()
-        self.create_deck(collection)
+        # self.create_deck(collection)
         
         db.session.commit()
 
@@ -39,7 +39,7 @@ class Room(db.Model):
             'state': 'Zero',
             'deck': [],
             'hands': [[]] * 4,
-            'scores': [0] * 4,
+            'scores': [0] * len(self.users),
         }
 
         self.data = json.dumps(data)
@@ -50,6 +50,7 @@ class Room(db.Model):
     def update_game(self, data):
         pass
 
+    # RE-DO create_deck with all_cards, black_cards, and white_cards
     def create_deck(self, collection):
         game = self.load_game()
 

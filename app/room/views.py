@@ -1,11 +1,16 @@
+import json
+
 from flask import jsonify, request
+
+from app import db, socketio
+from app.models.room import Room, RoomAssociation
+from app.models.schemas import (room_share_schema, user_share_schema,
+                                users_share_schema)
+from app.wrappers import token_required
 from flask_socketio import SocketIO
 
-from app import socketio, db
-from app.models.room import Room, RoomAssociation
-from app.models.schemas import room_share_schema, user_share_schema, users_share_schema
 from . import room
-from app.wrappers import token_required
+
 
 # Testing connection events
 @socketio.on('connect')
@@ -186,3 +191,21 @@ def leave_room(user, room_code):
             }
 
             return jsonify(res), 422
+
+@room.route('/start_game', methods=['PUT'])
+def start_game():
+  room_code = request.args.get('room')
+
+  room = Room.query.filter_by(code=room_code, status='active').first()
+
+  if room is not None:
+    room.init_game()
+
+    res = {
+      'users': users_share_schema.dump(room.users),
+      'room': room_share_schema.dump(room)
+    }
+
+    res['room']['data'] = json.loads(room.data)
+
+    return jsonify(res), 201

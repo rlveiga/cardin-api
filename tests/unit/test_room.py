@@ -1,8 +1,5 @@
 import json
 
-import pytest
-
-from app import db
 from app.models.room import Room, RoomAssociation
 
 def test_get_user_room(test_client, init_db, init_room_db, token):

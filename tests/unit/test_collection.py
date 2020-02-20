@@ -1,8 +1,5 @@
 import json
 
-import pytest
-
-from app import db
 from app.models.card import Card, CardAssociation
 from app.models.collection import Collection
 
