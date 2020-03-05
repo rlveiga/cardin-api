@@ -1,25 +1,37 @@
 import json
 
 from flask import jsonify, request
+from flask_socketio import emit, join_room, leave_room
 
 from app import db, socketio
 from app.models.room import Room, RoomAssociation
 from app.models.schemas import (room_share_schema, user_share_schema,
                                 users_share_schema)
 from app.wrappers import token_required
-from flask_socketio import SocketIO
 
 from . import room
 
+@socketio.on('join')
+def on_join(data):
+  print(data)
+  room = data['room']
+  user = data['user']
 
-# Testing connection events
-@socketio.on('connect')
-def greet():
-  print('Hello new user!')
+  print(f"{user['username']} will join {room}")
 
-@socketio.on('disconnect')
-def goodbye():
-  print('Goodbye now')
+  join_room(room)
+  emit('new_join', {"user": user, "room": room}, broadcast=True)
+
+@socketio.on('leave')
+def on_leave(data):
+  print(data)
+  room = data['room']
+  user = data['user']
+
+  print(f"{user['username']} will leave {room}")
+
+  leave_room(room)
+  emit('new_leave', {"user": user, "room": room}, broadcast=True)
 
 @room.route('/', methods=['POST'])
 @token_required
