@@ -28,7 +28,7 @@ def test_create_card(test_client, init_db, init_cards_collections_db, token):
     assert data['card']['name'] == 'Something clever'
     assert data['card']['created_by'] == 1
     assert type(data['card']['collections']) == list
-    assert data['card']['collections'][0]['name'] == 'My cards'
+    assert data['card']['collections'][0]['name'] == 'Minhas cartas'
     assert data['card']['collections'][1]['name'] == 'Test collection'
     assert data['card']['collections'][0]['created_by'] == 1
 

@@ -35,7 +35,7 @@ def create_card(user):
         db.session.add(new_card)
         db.session.commit()
 
-        default_collection_id = Collection.query.filter_by(created_by=user.id, name='My cards').first().id
+        default_collection_id = Collection.query.filter_by(created_by=user.id, name='Minhas cartas').first().id
 
         # Add card to default collection, mandatory
         new_association = CardAssociation(

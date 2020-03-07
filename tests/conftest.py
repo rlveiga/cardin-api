@@ -3,7 +3,7 @@ from app import create_app, db
 from app.models.user import User
 from app.models.room import Room, RoomAssociation
 from app.models.card import Card, CardAssociation
-from app.models.collection import Collection
+from app.models.collection import Collection, OwnedCollections
 
 @pytest.fixture
 def test_client():
@@ -56,8 +56,8 @@ def init_db():
 @pytest.fixture
 def init_cards_collections_db():
   # Default collections
-  default_collection1 = Collection(name="My cards", created_by=1, is_deletable=False)
-  default_collection2 = Collection(name="My cards", created_by=2, is_deletable=False)
+  default_collection1 = Collection(name="Minhas cartas", created_by=1, is_deletable=False)
+  default_collection2 = Collection(name="Minhas cartas", created_by=2, is_deletable=False)
   
   # User 1's collections
   collection1 = Collection(name='Test collection', created_by=1)
@@ -75,6 +75,24 @@ def init_cards_collections_db():
   ]
 
   db.session.add_all(collections)
+  db.session.commit()
+
+  # Collection ownerships
+  ownership1 = OwnedCollections(collection_id=default_collection1.id, user_id=1)
+  ownership2 = OwnedCollections(collection_id=default_collection2.id, user_id=2)
+  ownership3 = OwnedCollections(collection_id=collection1.id, user_id=1)
+  ownership4 = OwnedCollections(collection_id=collection2.id, user_id=1)
+  ownership5 = OwnedCollections(collection_id=collection3.id, user_id=2)
+
+  ownerships = [
+    ownership1,
+    ownership2,
+    ownership3,
+    ownership4,
+    ownership5
+  ]
+
+  db.session.add_all(ownerships)
   db.session.commit()
 
   # Test cards

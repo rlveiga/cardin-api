@@ -214,6 +214,6 @@ def start_game():
       'room': room_share_schema.dump(room)
     }
 
-    res['room']['data'] = json.loads(room.data)
+    res['room']['game_data'] = json.loads(room.game_data)
 
     return jsonify(res), 201
