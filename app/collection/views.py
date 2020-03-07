@@ -6,6 +6,7 @@ from app.models.collection import Collection
 from app.models.schemas import card_share_schema, cards_share_schema, collection_share_schema, collections_share_schema
 from . import collection
 from app.wrappers import token_required
+from app.utils import user_owns_collection
 
 @collection.route('/<collection_id>', methods=['GET'])
 @token_required
@@ -19,7 +20,7 @@ def get_collection_info(user, collection_id):
 
     return jsonify(res), 404
 
-  if collection.created_by != user.id:
+  if user_owns_collection(user.id, collection.id) is False:
     res = {
       'message': 'You do not own this collection'
     }
@@ -38,7 +39,7 @@ def get_collection_info(user, collection_id):
 @collection.route('/', methods=['GET'])
 @token_required
 def get_user_collections(user):
-  collections = Collection.query.filter_by(created_by=user.id).all()
+  collections = user.collections
 
   data = []
 

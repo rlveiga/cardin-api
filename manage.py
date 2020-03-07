@@ -39,9 +39,12 @@ def create_deck(folder_path, collection_name):
 
     for row in white_cards_reader:
       new_card = Card(name=row[1], card_type='white')
+      db.session.add(new_card)
+      db.session.commit()
+
       new_association = CardAssociation(card_id=new_card.id, collection_id=new_collection.id)
 
-      db.session.add(new_card, new_association)
+      db.session.add(new_association)
       db.session.commit()
 
   with open(black_cards_path) as csv_file:
@@ -49,9 +52,13 @@ def create_deck(folder_path, collection_name):
 
     for row in black_cards_reader:
       new_card = Card(name=row[1], card_type='black')
+
+      db.session.add(new_card)
+      db.session.commit()
+
       new_association = CardAssociation(card_id=new_card.id, collection_id=new_collection.id)
 
-      db.session.add(new_card, new_association)
+      db.session.add(new_association)
       db.session.commit()
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
