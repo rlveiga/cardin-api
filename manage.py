@@ -2,7 +2,7 @@ from app import app, db, socketio
 from app.models.user import User
 from app.models.room import Room, RoomAssociation
 from app.models.card import Card, CardAssociation
-from app.models.collection import Collection
+from app.models.collection import Collection, OwnedCollections
 
 import flask
 from flask_script import Manager, Shell
@@ -15,7 +15,7 @@ manager = Manager(app)
 Migrate = Migrate(app, db)
 
 def make_shell_context():
-	return dict(app=app, db=db, User=User, Card=Card, Collection=Collection, Room=Room, RoomAssociation=RoomAssociation)
+	return dict(app=app, db=db, User=User, Card=Card, Collection=Collection, OwnedCollections=OwnedCollections, Room=Room, RoomAssociation=RoomAssociation)
 
 @manager.command
 def run():
