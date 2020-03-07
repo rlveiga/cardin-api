@@ -5,6 +5,7 @@ from flask_socketio import emit, join_room, leave_room
 
 from app import db, socketio
 from app.models.room import Room, RoomAssociation
+from app.models.collection import Collection
 from app.models.schemas import (room_share_schema, user_share_schema,
                                 users_share_schema)
 from app.wrappers import token_required
@@ -200,14 +201,24 @@ def leave_room(user, room_code):
 
             return jsonify(res), 422
 
-@room.route('/start_game', methods=['PUT'])
-def start_game():
-  room_code = request.args.get('room')
+@room.route('/start_game/<room_id>', methods=['PUT'])
+def start_game(room_id):
+  # Request body contains id of collection to be used in game
+  body = request.get_json()
 
-  room = Room.query.filter_by(code=room_code, status='active').first()
+  room = Room.query.filter_by(id=room_id, status='active').first()
 
   if room is not None:
-    room.init_game()
+    collection = Collection.query.filter_by(id=body['collection_id']).first()
+
+    if collection is None:
+      res = {
+        'message': 'Collection not found'
+      }
+
+      return res, 404
+
+    room.init_game(collection.cards)
 
     res = {
       'users': users_share_schema.dump(room.users),
