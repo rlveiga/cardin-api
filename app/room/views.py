@@ -17,8 +17,6 @@ def on_join(data):
   room = data['room']
   user = data['user']
 
-  print(f"{user['username']} will join {room}")
-
   join_room(room)
   emit('new_join', {"user": user, "room": room}, broadcast=True)
 
@@ -27,8 +25,6 @@ def on_leave(data):
   print(data)
   room = data['room']
   user = data['user']
-
-  print(f"{user['username']} will leave {room}")
 
   leave_room(room)
   emit('new_leave', {"user": user, "room": room}, broadcast=True)

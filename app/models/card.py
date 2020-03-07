@@ -13,10 +13,8 @@ class Card(db.Model):
     __tablename__ = 'cards'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), nullable=False)
+    name = db.Column(db.String(256), nullable=False)
     card_type = db.Column(db.String(16), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)
     created_by = db.Column(db.Integer)
-
-    # Use yield to require less work
     collections = db.relationship("Collection", secondary='card_association')

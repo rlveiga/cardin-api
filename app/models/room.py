@@ -24,7 +24,7 @@ class Room(db.Model):
     status = db.Column(db.String(64), default='active', nullable=False)
     created_by = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
-    data = db.Column(db.String(1024))
+    game_data = db.Column(db.String(1024))
     users = db.relationship("User", secondary='room_association')
 
     def init_game(self):
@@ -35,17 +35,17 @@ class Room(db.Model):
 
     # Game state is stored as data
     def reset_game(self):
-        data = {
+        game_data = {
             'state': 'Zero',
             'deck': [],
             'hands': [[]] * 4,
             'scores': [0] * len(self.users),
         }
 
-        self.data = json.dumps(data)
+        self.game_data = json.dumps(game_data)
 
     def load_game(self):
-        return json.loads(self.data)
+        return json.loads(self.game_data)
 
     def update_game(self, data):
         pass
@@ -57,7 +57,7 @@ class Room(db.Model):
         for card in collection:
             game['deck'].append(card_share_schema.dump(card))
 
-        self.data = json.dumps(game)
+        self.game_data = json.dumps(game)
 
     #shuffles and distributes cards
     def shuffle_deck(self, user_id):
