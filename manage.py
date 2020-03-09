@@ -30,7 +30,7 @@ def create_deck(folder_path, collection_name):
   white_cards_path = f"./{folder_path}/white_cards.csv"
   black_cards_path = f"./{folder_path}/black_cards.csv"
 
-  new_collection = Collection(name=collection_name)
+  new_collection = Collection(name=collection_name, editable=False)
   db.session.add(new_collection)
   db.session.commit()
 

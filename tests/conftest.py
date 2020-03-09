@@ -56,8 +56,8 @@ def init_db():
 @pytest.fixture
 def init_cards_collections_db():
   # Default collections
-  default_collection1 = Collection(name="Minhas cartas", created_by=1, is_deletable=False)
-  default_collection2 = Collection(name="Minhas cartas", created_by=2, is_deletable=False)
+  default_collection1 = Collection(name="Minhas cartas", created_by=1, editable=False)
+  default_collection2 = Collection(name="Minhas cartas", created_by=2, editable=False)
   
   # User 1's collections
   collection1 = Collection(name='Test collection', created_by=1)

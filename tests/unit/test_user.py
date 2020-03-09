@@ -13,7 +13,7 @@ def test_create_user(test_client, init_db):
     assert type(data['user']) is dict
     assert type(data['user']['collections']) is list
     assert data['user']['collections'][0]['name'] == 'Minhas cartas'
-    assert data['user']['collections'][0]['is_deletable'] == False
+    assert data['user']['collections'][0]['editable'] == False
 
 def test_create_user_fail(test_client, init_db):
     response = test_client.post('/auth/register', json=dict(username='rodrigo', password='abc123'))

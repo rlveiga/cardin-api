@@ -27,7 +27,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        default_collection = Collection(name='Minhas cartas', created_by=new_user.id, is_deletable=False)
+        default_collection = Collection(name='Minhas cartas', created_by=new_user.id, editable=False)
 
         db.session.add(default_collection)
         db.session.commit()
