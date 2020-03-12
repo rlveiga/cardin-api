@@ -1,15 +1,14 @@
+import csv
+import time
+
+from flask_migrate import Migrate, MigrateCommand
+from flask_script import Manager, Shell
+
 from app import app, db, socketio
-from app.models.user import User
-from app.models.room import Room, RoomAssociation
 from app.models.card import Card, CardAssociation
 from app.models.collection import Collection, OwnedCollections
-
-import flask
-from flask_script import Manager, Shell
-from flask_migrate import Migrate, MigrateCommand 
-from flask_socketio import SocketIO
-
-import os, csv, time
+from app.models.room import Room, RoomAssociation
+from app.models.user import User
 
 manager = Manager(app)
 Migrate = Migrate(app, db)
@@ -21,7 +20,7 @@ def make_shell_context():
 def run():
   socketio.run(app)
 
-# Creates deck from CSV file and adds them to collection
+# Keep manager command here, move actual code to CollectionFactory (TODO) 
 @manager.command
 def create_deck(folder_path, collection_name):
   white_cards = []

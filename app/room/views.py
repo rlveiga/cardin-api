@@ -12,48 +12,53 @@ from app.wrappers import token_required
 
 from . import room
 
+
 @socketio.on('join')
 def on_join(data):
-  print(data)
-  room = data['room']
-  user = data['user']
+    print(data)
+    room = data['room']
+    user = data['user']
 
-  join_room(room)
-  emit('new_join', {"user": user, "room": room}, broadcast=True)
+    join_room(room)
+    emit('new_join', {"user": user, "room": room}, broadcast=True)
+
 
 @socketio.on('leave')
 def on_leave(data):
-  print(data)
-  room = data['room']
-  user = data['user']
+    print(data)
+    room = data['room']
+    user = data['user']
 
-  leave_room(room)
-  emit('new_leave', {"user": user, "room": room}, broadcast=True)
+    leave_room(room)
+    emit('new_leave', {"user": user, "room": room}, broadcast=True)
+
 
 @room.route('/', methods=['POST'])
 @token_required
 def create_room(user):
-    existing_association = RoomAssociation.query.filter_by(user_id=user.id).first()
+    existing_association = RoomAssociation.query.filter_by(
+        user_id=user.id).first()
 
     if existing_association is not None:
-      res = {
-        'message': 'User already belongs to a room'
-      }
+        res = {
+            'message': 'User already belongs to a room'
+        }
 
-      return jsonify(res), 403
+        return jsonify(res), 403
 
     body = request.get_json()
 
     if(body['code']):
-        existing_room = Room.query.filter_by(code=body['code'], status='active').first()
+        existing_room = Room.query.filter_by(
+            code=body['code'], status='active').first()
 
         if existing_room:
-          res = {
-            'message': f"Room '{body['code']}' is already in use"
-          }
+            res = {
+                'message': f"Room '{body['code']}' is already in use"
+            }
 
-          return jsonify(res), 403
-          
+            return jsonify(res), 403
+
         new_room = Room(code=body['code'], created_by=user.id)
 
         db.session.add(new_room)
@@ -64,19 +69,32 @@ def create_room(user):
         db.session.add(new_join)
         db.session.commit()
 
-        room = {
-            'data': room_share_schema.dump(new_room),
-            'users': users_share_schema.dump(new_room.users)
-        }
+        collection = Collection.query.filter_by(
+            id=body['collection_id']).first()
+
+        if collection is None:
+            res = {
+                'message': 'Collection not found'
+            }
+
+            return res, 404
+
+        new_room.init_game(collection)
+
+        game_dict = new_room.load_game()
+        game_dict['collection']['card_count'] = len(collection.cards)
 
         res = {
-            'room': room
+            'data': room_share_schema.dump(new_room),
+            'game': new_room.load_game(),
+            'users': users_share_schema.dump(new_room.users)
         }
 
         return jsonify(res)
 
     else:
         return jsonify({'message': 'Missing code in body'}), 422
+
 
 @room.route('/', methods=['GET'])
 @token_required
@@ -88,12 +106,13 @@ def get_current_room(user):
 
     else:
         room = Room.query.filter_by(id=association.room_id).first()
-        
+
         res = {
             'room': room_share_schema.dump(room),
         }
-        
+
         return jsonify(res)
+
 
 @room.route('/<room_code>', methods=['GET'])
 @token_required
@@ -118,9 +137,10 @@ def get_room_info(user, room_code):
                 'users': players_list
             }
         }
-        
+
         return jsonify(res)
-    
+
+
 @room.route('/<room_code>', methods=['POST'])
 @token_required
 def join_room(user, room_code):
@@ -130,37 +150,39 @@ def join_room(user, room_code):
         return jsonify({'message': 'Room not found'}), 404
 
     else:
-      existing_association = RoomAssociation.query.filter_by(user_id=user.id).first()
+        existing_association = RoomAssociation.query.filter_by(
+            user_id=user.id).first()
 
-      if existing_association is not None:
-        res = {
-            'message': 'User already belongs to a room'
-        }
+        if existing_association is not None:
+            res = {
+                'message': 'User already belongs to a room'
+            }
 
-        return jsonify(res), 403
+            return jsonify(res), 403
 
-      if len(room.users) < 4:
-          new_join = RoomAssociation(user_id=user.id, room_id=room.id)
+        if len(room.users) < 4:
+            new_join = RoomAssociation(user_id=user.id, room_id=room.id)
 
-          db.session.add(new_join)
-          db.session.commit()
+            db.session.add(new_join)
+            db.session.commit()
 
-          res = {
-              'room': {
-                  'data': room_share_schema.dump(room),
-                  'users': users_share_schema.dump(room.users)
-              }
-          }
+            res = {
+                'data': room_share_schema.dump(room),
+                'users': users_share_schema.dump(room.users),
+                'game': room.load_game()
+            }
 
-          return jsonify(res), 200
+            return jsonify(res), 200
 
-      else:
-          res = {
-              'message': 'Room is full'
-          }
+        else:
+            res = {
+                'message': 'Room is full'
+            }
 
-          return jsonify(res), 422
+            return jsonify(res), 422
 
+# View may delete the room association and the room itself.
+# REST calls should limit to only one databse change per request
 @room.route('/<room_code>', methods=['DELETE'])
 @token_required
 def leave_room(user, room_code):
@@ -171,28 +193,31 @@ def leave_room(user, room_code):
 
     else:
         if user in room.users:
-          # Host has left the room, make room inactive
-          # and remove all players
-          if room.created_by == user.id:
-              for u in room.users:
-                u_association = RoomAssociation.query.filter_by(room_id=room.id, user_id=u.id).first()
+            # Host has left the room, make room inactive
+            # and remove all players
+            if room.created_by == user.id:
+                for u in room.users:
+                    u_association = RoomAssociation.query.filter_by(
+                        room_id=room.id, user_id=u.id).first()
 
-                db.session.delete(u_association)
-                
-              room.status = 'inactive'
+                    db.session.delete(u_association)
 
-          else:
-            association = RoomAssociation.query.filter_by(room_id=room.id, user_id=user.id).first()
+                room.status = 'inactive'
 
-            db.session.delete(association)
-          db.session.commit()
-          
-          res = {
-              'message': 'User removed',
-              'room': room_share_schema.dump(room)
-          }
+            else:
+                association = RoomAssociation.query.filter_by(
+                    room_id=room.id, user_id=user.id).first()
 
-          return jsonify(res), 200
+                db.session.delete(association)
+
+            db.session.commit()
+
+            res = {
+                'message': 'User removed',
+                'room': room_share_schema.dump(room)
+            }
+
+            return jsonify(res), 200
 
         else:
             res = {
@@ -201,30 +226,32 @@ def leave_room(user, room_code):
 
             return jsonify(res), 422
 
+
 @room.route('/start_game/<room_id>', methods=['PUT'])
 def start_game(room_id):
-  # Request body contains id of collection to be used in game
-  body = request.get_json()
+    # Request body contains id of collection to be used in game
+    body = request.get_json()
 
-  room = Room.query.filter_by(id=room_id, status='active').first()
+    room = Room.query.filter_by(id=room_id, status='active').first()
 
-  if room is not None:
-    collection = Collection.query.filter_by(id=body['collection_id']).first()
+    if room is not None:
+        collection = Collection.query.filter_by(
+            id=body['collection_id']).first()
 
-    if collection is None:
-      res = {
-        'message': 'Collection not found'
-      }
+        if collection is None:
+            res = {
+                'message': 'Collection not found'
+            }
 
-      return res, 404
+            return res, 404
 
-    room.init_game(collection.cards)
+        room.init_game(collection.cards)
 
-    res = {
-      'users': users_share_schema.dump(room.users),
-      'room': room_share_schema.dump(room)
-    }
+        res = {
+            'users': users_share_schema.dump(room.users),
+            'room': room_share_schema.dump(room)
+        }
 
-    res['room']['game_data'] = json.loads(room.game_data)
+        res['room']['game_data'] = json.loads(room.game_data)
 
-    return jsonify(res), 201
+        return jsonify(res), 201

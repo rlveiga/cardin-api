@@ -19,7 +19,7 @@ class Collection(db.Model):
   editable = db.Column(db.Boolean, default=True)
   created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)
   created_by = db.Column(db.Integer)
-
+  
   def set_owner(self, user_id):
     new_ownership = OwnedCollections(user_id=user_id, collection_id=self.id)
 

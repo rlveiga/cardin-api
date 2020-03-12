@@ -24,13 +24,15 @@ def test_get_unexisting_room_players(test_client, init_db, token):
 
     assert data['message'] == 'Room not found'
 
-def test_create_room(test_client, init_db, token):
-    response = test_client.post('/rooms/', json=dict(code='abcde'), headers={'access-token': token})
+def test_create_room(test_client, init_db, init_cards_collections_db, token):
+    response = test_client.post('/rooms/', json=dict(code='abcde', collection_id=1), headers={'access-token': token})
 
     data = json.loads(response.data)
 
     assert response.status_code == 200
-    assert type(data['room']) == dict
+    assert type(data['data']) is dict
+    assert type(data['users']) is list
+    assert type(data['game']) is dict
 
 def test_create_another_room(test_client, init_db, init_room_db, token):
     response = test_client.post('/rooms/', json=dict(code='abcdf'), headers={'access-token': token})
