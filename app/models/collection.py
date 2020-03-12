@@ -1,7 +1,7 @@
 from app import db
 from datetime import datetime
 
-class OwnedCollections(db.Model):
+class OwnedCollection(db.Model):
   __tablename__ = 'owned_collections'
 
   id = db.Column(db.Integer, primary_key=True)
@@ -21,7 +21,7 @@ class Collection(db.Model):
   created_by = db.Column(db.Integer)
   
   def set_owner(self, user_id):
-    new_ownership = OwnedCollections(user_id=user_id, collection_id=self.id)
+    new_ownership = OwnedCollection(user_id=user_id, collection_id=self.id)
 
     db.session.add(new_ownership)
     db.session.commit()

@@ -2,7 +2,7 @@ from flask import jsonify, request
 
 from app import db
 from app.models.card import Card
-from app.models.collection import Collection
+from app.models.collection import Collection, OwnedCollection
 from app.models.schemas import card_share_schema, cards_share_schema, collection_share_schema, collections_share_schema
 from . import collection
 from app.wrappers import token_required
@@ -62,8 +62,12 @@ def create_collection(user):
     body = request.get_json()
 
     new_collection = Collection(name=body['name'], created_by=user.id)
-
     db.session.add(new_collection)
+    db.session.commit()
+
+    new_owned_collection = OwnedCollection(user_id=user.id, collection_id=new_collection.id)
+
+    db.session.add(new_owned_collection)
     db.session.commit()
 
     res = {

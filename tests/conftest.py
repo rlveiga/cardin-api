@@ -3,7 +3,7 @@ from app import create_app, db
 from app.models.user import User
 from app.models.room import Room, RoomAssociation
 from app.models.card import Card, CardAssociation
-from app.models.collection import Collection, OwnedCollections
+from app.models.collection import Collection, OwnedCollection
 
 @pytest.fixture
 def test_client():
@@ -78,11 +78,11 @@ def init_cards_collections_db():
   db.session.commit()
 
   # Collection ownerships
-  ownership1 = OwnedCollections(collection_id=default_collection1.id, user_id=1)
-  ownership2 = OwnedCollections(collection_id=default_collection2.id, user_id=2)
-  ownership3 = OwnedCollections(collection_id=collection1.id, user_id=1)
-  ownership4 = OwnedCollections(collection_id=collection2.id, user_id=1)
-  ownership5 = OwnedCollections(collection_id=collection3.id, user_id=2)
+  ownership1 = OwnedCollection(collection_id=default_collection1.id, user_id=1)
+  ownership2 = OwnedCollection(collection_id=default_collection2.id, user_id=2)
+  ownership3 = OwnedCollection(collection_id=collection1.id, user_id=1)
+  ownership4 = OwnedCollection(collection_id=collection2.id, user_id=1)
+  ownership5 = OwnedCollection(collection_id=collection3.id, user_id=2)
 
   ownerships = [
     ownership1,
