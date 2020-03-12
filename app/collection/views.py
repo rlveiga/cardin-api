@@ -65,10 +65,7 @@ def create_collection(user):
     db.session.add(new_collection)
     db.session.commit()
 
-    new_owned_collection = OwnedCollection(user_id=user.id, collection_id=new_collection.id)
-
-    db.session.add(new_owned_collection)
-    db.session.commit()
+    new_collection.set_owner(user.id)
 
     res = {
         'collection': {
