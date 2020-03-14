@@ -19,7 +19,15 @@ class Collection(db.Model):
   editable = db.Column(db.Boolean, default=True)
   created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)
   created_by = db.Column(db.Integer)
+
+  @property
+  def count_white_cards(self):
+    return sum(card.card_type == 'white' for card in self.cards)
   
+  @property
+  def count_black_cards(self):
+    return sum(card.card_type == 'black' for card in self.cards)
+
   def set_owner(self, user_id):
     new_ownership = OwnedCollection(user_id=user_id, collection_id=self.id)
 

@@ -45,8 +45,13 @@ def get_user_collections(user):
 
   for e in collections:
     card_count = len(e.cards)
+    white_card_count = e.count_white_cards
+    black_card_count = e.count_black_cards
+
     e = collection_share_schema.dump(e)
     e['card_count'] = card_count
+    e['white_card_count'] = white_card_count
+    e['black_card_count'] = black_card_count
 
     data.append(e)
 

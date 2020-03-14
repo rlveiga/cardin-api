@@ -228,7 +228,8 @@ def leave_room(user, room_code):
 
 
 @room.route('/start_game/<room_id>', methods=['PUT'])
-def start_game(room_id):
+@token_required
+def start_game(user, room_id):
     # Request body contains id of collection to be used in game
     body = request.get_json()
 
@@ -245,7 +246,7 @@ def start_game(room_id):
 
             return res, 404
 
-        room.init_game(collection.cards)
+        room.init_game(collection)
 
         res = {
             'users': users_share_schema.dump(room.users),
