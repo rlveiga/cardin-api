@@ -1,7 +1,6 @@
 import json
 
 from flask import jsonify, request
-from flask_socketio import emit, join_room, leave_room
 
 from app import db, socketio
 from app.models.room import Room, RoomAssociation
@@ -11,27 +10,6 @@ from app.models.schemas import (room_share_schema, user_share_schema,
 from app.wrappers import token_required
 
 from . import room
-
-
-@socketio.on('join')
-def on_join(data):
-    print(data)
-    room = data['room']
-    user = data['user']
-
-    join_room(room)
-    emit('new_join', {"user": user, "room": room}, broadcast=True)
-
-
-@socketio.on('leave')
-def on_leave(data):
-    print(data)
-    room = data['room']
-    user = data['user']
-
-    leave_room(room)
-    emit('new_leave', {"user": user, "room": room}, broadcast=True)
-
 
 @room.route('/', methods=['POST'])
 @token_required
