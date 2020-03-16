@@ -33,14 +33,14 @@ class Room(db.Model):
     game_data = db.Column(db.String(500000))
     users = db.relationship("User", secondary='room_association')
 
-    def init_game(self, collection):
-        self.reset_game(collection)
+    def init_room(self, collection):
+        self.reset_game_data(collection)
         self.create_deck(collection.cards)
 
         db.session.commit()
 
     # Game state is stored as metadata
-    def reset_game(self, collection):
+    def reset_game_data(self, collection):
         collection_dict = collection_share_schema.dump(collection)
         collection_dict['card_count'] = len(collection.cards)
 
@@ -51,7 +51,11 @@ class Room(db.Model):
             'white_cards': [],
             'black_cards': [],
             'discarded_cards': [],
-            'hands': [[]],
+            'table_card': None,
+            'hands': [{
+              'user_id': self.created_by,
+              'cards': []
+            }],
             'scores': [{
                 'user_id': self.created_by,
                 'score': 0
@@ -78,6 +82,10 @@ class Room(db.Model):
 
         self.game_data = json.dumps(game_data)
 
+    def init_game(self):
+      self.distribute_cards()
+      self.pick_table_card()
+
     # Randomly assigns white cards to hands,
     # to be called upon game start
     def distribute_cards(self):
@@ -87,8 +95,22 @@ class Room(db.Model):
       for hand in game_data['hands']:
         for i in range(7):
           selected_card = white_card_list.pop(random.randrange(len(white_card_list)))
-          hand.append(selected_card)
+          print(hand)
+          hand['cards'].append(selected_card)
           game_data['discarded_cards'].append(selected_card)
+
+      self.game_data = json.dumps(game_data)
+
+    # Randomly select a card prom black cards to
+    # be played, to be called upon game start and
+    # round end
+    def pick_table_card(self):
+      game_data = self.load_game()
+      black_card_list = game_data['black_cards']
+
+      selected_card = black_card_list.pop(random.randrange(len(black_card_list)))
+      game_data['table_card'] = selected_card
+      game_data['discarded_cards'].append(selected_card)
 
       self.game_data = json.dumps(game_data)
 
@@ -99,7 +121,10 @@ class Room(db.Model):
         db.session.commit()
 
         game_data = self.load_game()
-        game_data['hands'].append([])
+        game_data['hands'].append({
+          'user_id': user_id,
+          'cards': []
+        })
         game_data['scores'].append({
             'user_id': user_id,
             'score': 0

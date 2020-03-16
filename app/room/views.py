@@ -58,7 +58,7 @@ def create_room(user):
 
             return res, 404
 
-        new_room.init_game(collection)
+        new_room.init_room(collection)
 
         game_dict = new_room.load_game()
         game_dict['collection']['card_count'] = len(collection.cards)
