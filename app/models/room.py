@@ -1,4 +1,6 @@
 import json
+import random
+
 from datetime import datetime
 from enum import Enum
 
@@ -48,6 +50,7 @@ class Room(db.Model):
             'all_cards': [],
             'white_cards': [],
             'black_cards': [],
+            'discarded_cards': [],
             'hands': [[]],
             'scores': [{
                 'user_id': self.created_by,
@@ -56,6 +59,11 @@ class Room(db.Model):
         }
 
         self.game_data = json.dumps(game_data)
+
+    def load_game(self):
+        game_data = json.loads(self.game_data)
+
+        return game_data
 
     def create_deck(self, cards):
         game_data = json.loads(self.game_data)
@@ -69,6 +77,20 @@ class Room(db.Model):
                 game_data['white_cards'].append(card_share_schema.dump(card))
 
         self.game_data = json.dumps(game_data)
+
+    # Randomly assigns white cards to hands,
+    # to be called upon game start
+    def distribute_cards(self):
+      game_data = self.load_game()
+      white_card_list = game_data['white_cards']
+
+      for hand in game_data['hands']:
+        for i in range(7):
+          selected_card = white_card_list.pop(random.randrange(len(white_card_list)))
+          hand.append(selected_card)
+          game_data['discarded_cards'].append(selected_card)
+
+      self.game_data = json.dumps(game_data)
 
     def add_user(self, user_id):
         new_join = RoomAssociation(user_id=user_id, room_id=self.id)
@@ -84,7 +106,6 @@ class Room(db.Model):
         })
 
         self.game_data = json.dumps(game_data)
-        db.session.commit()
 
     def remove_user(self, user_id):
         # Host has left the room, make room inactive
@@ -113,11 +134,3 @@ class Room(db.Model):
                 game_data['scores'].remove(score)
 
         self.game_data = json.dumps(game_data)
-        db.session.commit()
-
-    def load_game(self):
-        game_data = json.loads(self.game_data)
-
-        print(game_data['scores'])
-
-        return game_data

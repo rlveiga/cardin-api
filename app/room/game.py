@@ -31,5 +31,6 @@ def game_start(data):
   room_code = data['room']
 
   current_room = Room.query.filter_by(code=room_code).first()
+  current_room.distribute_cards()
 
   emit('start_response', current_room.load_game(), room=room_code)

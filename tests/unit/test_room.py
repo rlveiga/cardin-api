@@ -56,8 +56,8 @@ def test_join_room(test_client, init_db, token):
     data = json.loads(response.data)
 
     assert response.status_code == 200
-    assert data['room']['data']['id'] == 1
-    assert len(data['room']['users']) == 1
+    assert data['data']['id'] == 1
+    assert len(data['users']) == 1
 
 def test_join_unexisting_room(test_client, init_db, token):
     response = test_client.post('/rooms/four2', headers={'access-token': token})
