@@ -48,17 +48,14 @@ class Room(db.Model):
             'all_cards': [],
             'white_cards': [],
             'black_cards': [],
-            'hands': [[]] * 4,
-            'scores': [0] * len(self.users),
+            'hands': [[]],
+            'scores': [{
+                'user_id': self.created_by,
+                'score': 0
+            }],
         }
 
         self.game_data = json.dumps(game_data)
-
-    def load_game(self):
-        return json.loads(self.game_data)
-
-    def update_game(self, data):
-        pass
 
     def create_deck(self, cards):
         game_data = json.loads(self.game_data)
@@ -73,6 +70,54 @@ class Room(db.Model):
 
         self.game_data = json.dumps(game_data)
 
-    # shuffles and distributes cards
-    def shuffle_deck(self, user_id):
-        pass
+    def add_user(self, user_id):
+        new_join = RoomAssociation(user_id=user_id, room_id=self.id)
+
+        db.session.add(new_join)
+        db.session.commit()
+
+        game_data = self.load_game()
+        game_data['hands'].append([])
+        game_data['scores'].append({
+            'user_id': user_id,
+            'score': 0
+        })
+
+        self.game_data = json.dumps(game_data)
+        db.session.commit()
+
+    def remove_user(self, user_id):
+        # Host has left the room, make room inactive
+        # and remove all players
+        if self.created_by == user_id:
+            for u in self.users:
+                u_association = RoomAssociation.query.filter_by(
+                    room_id=self.id, user_id=u.id).first()
+
+                db.session.delete(u_association)
+
+            self.status = 'inactive'
+
+        else:
+            association = RoomAssociation.query.filter_by(
+                room_id=self.id, user_id=user_id).first()
+
+            db.session.delete(association)
+
+        db.session.commit()
+
+        game_data = self.load_game()
+
+        for score in game_data['scores']:
+            if score['user_id'] == user_id:
+                game_data['scores'].remove(score)
+
+        self.game_data = json.dumps(game_data)
+        db.session.commit()
+
+    def load_game(self):
+        game_data = json.loads(self.game_data)
+
+        print(game_data['scores'])
+
+        return game_data

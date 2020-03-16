@@ -11,6 +11,7 @@ from app.wrappers import token_required
 
 from . import room
 
+
 @room.route('/', methods=['POST'])
 @token_required
 def create_room(user):
@@ -64,7 +65,7 @@ def create_room(user):
 
         res = {
             'data': room_share_schema.dump(new_room),
-            'game': new_room.load_game(),
+            'game': game_dict,
             'users': users_share_schema.dump(new_room.users)
         }
 
@@ -138,26 +139,15 @@ def join_room(user, room_code):
 
             return jsonify(res), 403
 
-        if len(room.users) < 4:
-            new_join = RoomAssociation(user_id=user.id, room_id=room.id)
+        room.add_user(user.id)
 
-            db.session.add(new_join)
-            db.session.commit()
+        res = {
+            'data': room_share_schema.dump(room),
+            'users': users_share_schema.dump(room.users),
+            'game': room.load_game()
+        }
 
-            res = {
-                'data': room_share_schema.dump(room),
-                'users': users_share_schema.dump(room.users),
-                'game': room.load_game()
-            }
-
-            return jsonify(res), 200
-
-        else:
-            res = {
-                'message': 'Room is full'
-            }
-
-            return jsonify(res), 422
+        return jsonify(res), 200
 
 # View may delete the room association and the room itself.
 # REST calls should limit to only one databse change per request
@@ -171,24 +161,7 @@ def leave_room(user, room_code):
 
     else:
         if user in room.users:
-            # Host has left the room, make room inactive
-            # and remove all players
-            if room.created_by == user.id:
-                for u in room.users:
-                    u_association = RoomAssociation.query.filter_by(
-                        room_id=room.id, user_id=u.id).first()
-
-                    db.session.delete(u_association)
-
-                room.status = 'inactive'
-
-            else:
-                association = RoomAssociation.query.filter_by(
-                    room_id=room.id, user_id=user.id).first()
-
-                db.session.delete(association)
-
-            db.session.commit()
+            room.remove_user(user.id)
 
             res = {
                 'message': 'User removed',
@@ -203,34 +176,3 @@ def leave_room(user, room_code):
             }
 
             return jsonify(res), 422
-
-
-@room.route('/start_game/<room_id>', methods=['PUT'])
-@token_required
-def start_game(user, room_id):
-    # Request body contains id of collection to be used in game
-    body = request.get_json()
-
-    room = Room.query.filter_by(id=room_id, status='active').first()
-
-    if room is not None:
-        collection = Collection.query.filter_by(
-            id=body['collection_id']).first()
-
-        if collection is None:
-            res = {
-                'message': 'Collection not found'
-            }
-
-            return res, 404
-
-        room.init_game(collection)
-
-        res = {
-            'users': users_share_schema.dump(room.users),
-            'room': room_share_schema.dump(room)
-        }
-
-        res['room']['game_data'] = json.loads(room.game_data)
-
-        return jsonify(res), 201
