@@ -26,11 +26,25 @@ def leave(data):
 
     emit('leave_response', user, room=room_code)
 
+
 @socketio.on('game_start')
 def game_start(data):
-  room_code = data['room']
+    room_code = data['room']
 
-  current_room = Room.query.filter_by(code=room_code).first()
-  current_room.init_game()
+    current_room = Room.query.filter_by(code=room_code).first()
+    current_room.init_game()
 
-  emit('start_response', current_room.load_game(), room=room_code)
+    emit('start_response', current_room.load_game(), room=room_code)
+
+
+@socketio.on('cards_selected')
+def cards_selected(data):
+    room_code = data['room']
+
+    current_room = Room.query.filter_by(code=room_code).first()
+
+    current_room.set_cards_for_user(data['user_id'], data['cards'])
+
+    # Notify players in room that user with
+    # data['user_id'] has played his cards
+    emit('cards_selected_response', data['user_id'], room=room_code)

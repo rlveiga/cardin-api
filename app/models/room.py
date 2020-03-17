@@ -53,24 +53,24 @@ class Room(db.Model):
             'discarded_cards': [],
             'table_card': None,
             'hands': [{
-              'user_id': self.created_by,
-              'cards': []
+                'user_id': self.created_by,
+                'cards': []
+            }],
+            'selected_cards': [{
+                'user_id': self.created_by,
+                'cards': None
             }],
             'scores': [{
                 'user_id': self.created_by,
                 'score': 0
             }],
+            'czar_id': None
         }
 
         self.game_data = json.dumps(game_data)
 
-    def load_game(self):
-        game_data = json.loads(self.game_data)
-
-        return game_data
-
     def create_deck(self, cards):
-        game_data = json.loads(self.game_data)
+        game_data = self.load_game()
         game_data['all_cards'] = cards_share_schema.dump(cards)
 
         for card in cards:
@@ -83,36 +83,46 @@ class Room(db.Model):
         self.game_data = json.dumps(game_data)
 
     def init_game(self):
-      self.distribute_cards()
-      self.pick_table_card()
+        self.distribute_cards()
+        self.pick_table_card()
+        self.pick_czar()
 
     # Randomly assigns white cards to hands,
     # to be called upon game start
     def distribute_cards(self):
-      game_data = self.load_game()
-      white_card_list = game_data['white_cards']
+        game_data = self.load_game()
+        white_card_list = game_data['white_cards']
 
-      for hand in game_data['hands']:
-        for i in range(7):
-          selected_card = white_card_list.pop(random.randrange(len(white_card_list)))
-          print(hand)
-          hand['cards'].append(selected_card)
-          game_data['discarded_cards'].append(selected_card)
+        for hand in game_data['hands']:
+            for i in range(7):
+                selected_card = white_card_list.pop(
+                    random.randrange(len(white_card_list)))
 
-      self.game_data = json.dumps(game_data)
+                hand['cards'].append(selected_card)
+                game_data['discarded_cards'].append(selected_card)
+
+        self.game_data = json.dumps(game_data)
 
     # Randomly select a card prom black cards to
     # be played, to be called upon game start and
     # round end
     def pick_table_card(self):
-      game_data = self.load_game()
-      black_card_list = game_data['black_cards']
+        game_data = self.load_game()
+        black_card_list = game_data['black_cards']
 
-      selected_card = black_card_list.pop(random.randrange(len(black_card_list)))
-      game_data['table_card'] = selected_card
-      game_data['discarded_cards'].append(selected_card)
+        selected_card = black_card_list.pop(
+            random.randrange(len(black_card_list)))
+        game_data['table_card'] = selected_card
+        game_data['discarded_cards'].append(selected_card)
 
-      self.game_data = json.dumps(game_data)
+        self.game_data = json.dumps(game_data)
+
+    def pick_czar(self):
+        game_data = self.load_game()
+        new_czar_id = self.users[random.randrange(len(self.users))].id
+
+        game_data['czar_id'] = new_czar_id
+        self.game_data = json.dumps(game_data)
 
     def add_user(self, user_id):
         new_join = RoomAssociation(user_id=user_id, room_id=self.id)
@@ -122,8 +132,12 @@ class Room(db.Model):
 
         game_data = self.load_game()
         game_data['hands'].append({
-          'user_id': user_id,
-          'cards': []
+            'user_id': user_id,
+            'cards': []
+        })
+        game_data['selected_cards'].append({
+            'user_id': user_id,
+            'cards': []
         })
         game_data['scores'].append({
             'user_id': user_id,
@@ -159,3 +173,23 @@ class Room(db.Model):
                 game_data['scores'].remove(score)
 
         self.game_data = json.dumps(game_data)
+
+    def set_cards_for_user(self, user_id, user_cards):
+        game_data = self.load_game()
+
+        for data in game_data['selected_cards']:
+            if data['user_id'] == user_id:
+                data['cards'] = user_cards
+
+        for hand in game_data['hands']:
+            if hand['user_id'] == user_id:
+                print(f"Hand: {hand['cards']}")
+                for selected_card in user_cards:
+                    hand['cards'].remove(selected_card)
+                    
+        self.game_data = json.dumps(game_data)
+
+    def load_game(self):
+        game_data = json.loads(self.game_data)
+
+        return game_data
