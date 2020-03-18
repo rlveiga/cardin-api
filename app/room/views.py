@@ -60,11 +60,9 @@ def create_room(user):
 
         new_room.init_room(collection)
 
-        game_dict = new_room.load_game()
-
         res = {
             'data': room_share_schema.dump(new_room),
-            'game': game_dict,
+            'game': new_room.load_game(),
             'users': users_share_schema.dump(new_room.users)
         }
 
@@ -138,7 +136,7 @@ def join_room(user, room_code):
 
             return jsonify(res), 403
 
-        room.add_user(user.id)
+        room.add_user(user)
 
         res = {
             'data': room_share_schema.dump(room),

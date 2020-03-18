@@ -39,6 +39,7 @@ def game_start(data):
 
 @socketio.on('cards_selected')
 def cards_selected(data):
+    print(data)
     room_code = data['room']
 
     current_room = Room.query.filter_by(code=room_code).first()
@@ -49,8 +50,9 @@ def cards_selected(data):
     # data['user_id'] has played his cards
     emit('cards_selected_response', data['user_id'], room=room_code)
 
+
 @socketio.on('pick_winner')
-def pick_winner(data)
+def pick_winner(data):
     room_code = data['room']
     winner_id = data['winner_id']
 
@@ -60,10 +62,11 @@ def pick_winner(data)
 
     emit('pick_winner_response', current_room.load_game(), room=room_code)
 
+
 @socketio.on('new_round_start')
-def new_round_start(data)
+def new_round_start(data):
     room_code = data['room']
-    
+
     current_room = Room.query.filter_by(code=room_code).first()
 
     current_room.start_new_round()

@@ -7,6 +7,7 @@ from enum import Enum
 from flask import jsonify
 
 from app import db
+from app.models.user import User
 from app.models.schemas import (card_share_schema, cards_share_schema, room_share_schema,
                                 collection_share_schema, user_share_schema, users_share_schema)
 
@@ -34,33 +35,29 @@ class Room(db.Model):
     users = db.relationship("User", secondary='room_association')
 
     def init_room(self, collection):
-        self.reset_game_data(collection)
+        self.init_game_data(collection)
         self.create_deck(collection.cards)
 
         db.session.commit()
 
     # Game state is stored as metadata
-    def reset_game_data(self, collection):
-        collection_dict = collection_share_schema.dump(collection)
+    def init_game_data(self, collection):
+        creator = User.query.filter_by(id=self.created_by).first()
+        user_dict = user_share_schema.dump(creator)
+        user_dict['has_played'] = False
 
         game_data = {
             'state': 'Zero',
-            'collection': collection_dict,
+            'collection': collection_share_schema.dump(collection),
             'all_cards': [],
             'white_cards': [],
             'black_cards': [],
             'discarded_cards': [],
             'table_card': None,
-            'hands': [{
-                'user_id': self.created_by,
-                'cards': []
-            }],
-            'selected_cards': [{
-                'user_id': self.created_by,
-                'cards': []
-            }],
-            'scores': [{
-                'user_id': self.created_by,
+            'players': [{
+                'data': user_dict,
+                'hand': [],
+                'selected_cards': [],
                 'score': 0
             }],
             'czar_id': None,
@@ -94,8 +91,8 @@ class Room(db.Model):
         game_data['czar_id'] = None
         game_data['round_winner'] = None
 
-        for e in game_data['selected_cards']:
-            e['cards'] = []
+        for player in game_data['players']:
+            player['selected_cards'] = []
 
         self.game_data = json.dumps(game_data)
 
@@ -107,13 +104,13 @@ class Room(db.Model):
         game_data = self.load_game()
         white_card_list = game_data['white_cards']
 
-        for hand in game_data['hands']:
+        for player in game_data['players']:
             for i in range(card_count):
                 selected_card = white_card_list.pop(
                     random.randrange(len(white_card_list)))
 
-                hand['cards'].append(selected_card)
                 game_data['discarded_cards'].append(selected_card)
+                player['hand'].append(selected_card)
 
         self.game_data = json.dumps(game_data)
 
@@ -138,23 +135,20 @@ class Room(db.Model):
         game_data['czar_id'] = new_czar_id
         self.game_data = json.dumps(game_data)
 
-    def add_user(self, user_id):
-        new_join = RoomAssociation(user_id=user_id, room_id=self.id)
+    def add_user(self, user):
+        new_join = RoomAssociation(user_id=user.id, room_id=self.id)
 
         db.session.add(new_join)
         db.session.commit()
 
+        user_dict = user_share_schema.dump(user)
+        user_dict['has_played'] = False
+
         game_data = self.load_game()
-        game_data['hands'].append({
-            'user_id': user_id,
-            'cards': []
-        })
-        game_data['selected_cards'].append({
-            'user_id': user_id,
-            'cards': []
-        })
-        game_data['scores'].append({
-            'user_id': user_id,
+        game_data['players'].append({
+            'data': user_dict,
+            'hand': [],
+            'selected_cards': [],
             'score': 0
         })
 
@@ -182,31 +176,41 @@ class Room(db.Model):
 
         game_data = self.load_game()
 
-        for score in game_data['scores']:
-            if score['user_id'] == user_id:
-                game_data['scores'].remove(score)
+        for player in game_data['players']:
+          if player['data']['id'] == user_id:
+            game_data['players'].remove(player)
 
-        for hand in game_data['hands']:
-            if hand['user_id'] == user_id:
-                game_data['hands'].remove(hand)
+        # for score in game_data['scores']:
+        #     if score['user_id'] == user_id:
+        #         game_data['scores'].remove(score)
 
-        for selected_cards in game_data['selected_cards']:
-            if selected_cards['user_id'] == user_id:
-                game_data['selected_cards'].remove(selected_cards)
+        # for hand in game_data['hands']:
+        #     if hand['user_id'] == user_id:
+        #         game_data['hands'].remove(hand)
+
+        # for selected_cards in game_data['selected_cards']:
+        #     if selected_cards['user_id'] == user_id:
+        #         game_data['selected_cards'].remove(selected_cards)
 
         self.game_data = json.dumps(game_data)
 
     def set_cards_for_user(self, user_id, user_cards):
         game_data = self.load_game()
 
-        for data in game_data['selected_cards']:
-            if data['user_id'] == user_id:
-                data['cards'] = user_cards
-
-        for hand in game_data['hands']:
-            if hand['user_id'] == user_id:
+        for player in game_data['players']:
+            if player['data']['id'] == user_id:
+                player['selected_cards'] = user_cards
                 for selected_card in user_cards:
-                    hand['cards'].remove(selected_card)
+                    player['hand'].remove(selected_card)
+
+        # for data in game_data['selected_cards']:
+        #     if data['user_id'] == user_id:
+        #         data['cards'] = user_cards
+
+        # for hand in game_data['hands']:
+        #     if hand['user_id'] == user_id:
+        #         for selected_card in user_cards:
+        #             hand['cards'].remove(selected_card)
 
         self.game_data = json.dumps(game_data)
 
@@ -215,9 +219,9 @@ class Room(db.Model):
 
         game_data['round_winner'] = winner_id
 
-        for score in game_data['scores']:
-            if score['user_id'] == winner_id:
-                score['score'] += 1
+        for player in game_data['players']:
+            if player['data']['id'] == winner_id:
+                player['score'] += 1
 
         self.game_data = json.dumps(game_data)
 
