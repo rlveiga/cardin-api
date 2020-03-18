@@ -42,8 +42,7 @@ class Room(db.Model):
     # Game state is stored as metadata
     def reset_game_data(self, collection):
         collection_dict = collection_share_schema.dump(collection)
-        collection_dict['card_count'] = len(collection.cards)
-
+        
         game_data = {
             'state': 'Zero',
             'collection': collection_dict,
@@ -58,13 +57,14 @@ class Room(db.Model):
             }],
             'selected_cards': [{
                 'user_id': self.created_by,
-                'cards': None
+                'cards': []
             }],
             'scores': [{
                 'user_id': self.created_by,
                 'score': 0
             }],
-            'czar_id': None
+            'czar_id': None,
+            'round_winner': None
         }
 
         self.game_data = json.dumps(game_data)
@@ -183,12 +183,22 @@ class Room(db.Model):
 
         for hand in game_data['hands']:
             if hand['user_id'] == user_id:
-                print(f"Hand: {hand['cards']}")
                 for selected_card in user_cards:
                     hand['cards'].remove(selected_card)
                     
         self.game_data = json.dumps(game_data)
 
+    def pick_winner(self, winner_id):
+      game_data = self.load_game()
+
+      game_data['round_winner'] = winner_id
+      
+      for score in game_data['scores']:
+        if score['user_id'] == winner_id:
+          score['score'] += 1
+
+      self.game_data = json.dumps(game_data)
+      
     def load_game(self):
         game_data = json.loads(self.game_data)
 

@@ -61,7 +61,6 @@ def create_room(user):
         new_room.init_room(collection)
 
         game_dict = new_room.load_game()
-        game_dict['collection']['card_count'] = len(collection.cards)
 
         res = {
             'data': room_share_schema.dump(new_room),
