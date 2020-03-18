@@ -4,6 +4,7 @@ from app.models.schemas import collection_share_schema
 
 import random
 
+
 def test_init_room(test_client, init_game_db):
     room = Room.query.first()
     collection = Collection.query.first()
@@ -32,7 +33,8 @@ def test_init_room(test_client, init_game_db):
         'score': 0
     }]
     assert game_data['czar_id'] is None
-    assert game_data['round_winner'] is None 
+    assert game_data['round_winner'] is None
+
 
 def test_add_player(test_client, init_game_db):
     room = Room.query.first()
@@ -40,7 +42,7 @@ def test_add_player(test_client, init_game_db):
     room.add_user(2)
 
     game_data = room.load_game()
-    
+
     assert game_data['hands'] == [{
         'user_id': 1,
         'cards': []
@@ -63,56 +65,94 @@ def test_add_player(test_client, init_game_db):
         'score': 0
     }]
 
+
 def test_distribute_cards(test_client, init_game_db):
-  room = Room.query.first()
+    room = Room.query.first()
 
-  room.distribute_cards()
+    room.distribute_cards(7)
 
-  game_data = room.load_game()
+    game_data = room.load_game()
 
-  assert game_data['hands'][0]['user_id'] == 1
-  assert len(game_data['hands'][0]['cards']) == 7
-  assert len(game_data['discarded_cards']) == 14
+    assert game_data['hands'][0]['user_id'] == 1
+    assert len(game_data['hands'][0]['cards']) == 7
+    assert len(game_data['discarded_cards']) == 14
+
 
 def test_pick_table_card(test_client, init_game_db):
-  room = Room.query.first()
+    room = Room.query.first()
 
-  room.pick_table_card()
+    room.pick_table_card()
 
-  game_data = room.load_game()
+    game_data = room.load_game()
 
-  assert game_data['table_card'] is not None
-  assert len(game_data['discarded_cards']) == 15
+    assert game_data['table_card'] is not None
+    assert len(game_data['discarded_cards']) == 15
+
 
 def test_pick_czar(test_client, init_game_db):
-  room = Room.query.first()
+    room = Room.query.first()
 
-  room.pick_czar()
+    room.pick_czar()
 
-  game_data = room.load_game()
+    game_data = room.load_game()
 
-  assert type(game_data['czar_id']) is int
+    assert type(game_data['czar_id']) is int
+
 
 def test_set_cards_for_user(test_client, init_game_db):
-  room = Room.query.first()
+    room = Room.query.first()
 
-  game_data = room.load_game()
+    game_data = room.load_game()
 
-  room.set_cards_for_user(1, [game_data['hands'][0]['cards'][0]])
+    room.set_cards_for_user(1, [game_data['hands'][0]['cards'][0]])
+    room.set_cards_for_user(2, [game_data['hands'][1]['cards'][0]])
 
-  game_data = room.load_game()
+    game_data = room.load_game()
 
-  assert len(game_data['selected_cards'][0]['cards']) == 1
+    assert len(game_data['hands'][0]['cards']) == 6
+    assert len(game_data['hands'][1]['cards']) == 6
+
+    assert len(game_data['selected_cards'][0]['cards']) == 1
+    assert len(game_data['selected_cards'][1]['cards']) == 1
+
 
 def test_pick_winner(test_client, init_game_db):
-  room = Room.query.first()
+    room = Room.query.first()
 
-  game_data = room.load_game()
+    game_data = room.load_game()
 
-  winner_id = game_data['hands'][random.randrange(len(room.users))]['user_id']
+    winner_id = game_data['hands'][0]['user_id']
 
-  room.pick_winner(winner_id)
+    room.pick_winner(winner_id)
 
-  game_data = room.load_game()
-  
-  assert game_data['round_winner'] == winner_id
+    game_data = room.load_game()
+
+    assert game_data['round_winner'] == winner_id
+    assert game_data['scores'][0]['score'] == 1
+
+
+def test_start_new_round(test_client, init_game_db):
+    room = Room.query.first()
+
+    room.start_new_round()
+
+    game_data = room.load_game()
+
+    assert game_data['table_card'] is None
+    assert game_data['czar_id'] is None
+    assert game_data['round_winner'] is None
+    assert len(game_data['hands'][0]['cards']) == 7
+    assert len(game_data['hands'][1]['cards']) == 7
+    assert len(game_data['selected_cards'][0]['cards']) == 0
+    assert len(game_data['selected_cards'][1]['cards']) == 0
+
+def test_remove_user(test_client, init_game_db):
+    room = Room.query.first()
+
+    room.remove_user(2)
+
+    game_data = room.load_game()
+
+    assert len(game_data['hands']) == 1
+    assert len(game_data['scores']) == 1
+    assert len(game_data['selected_cards']) == 1

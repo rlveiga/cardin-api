@@ -42,7 +42,7 @@ class Room(db.Model):
     # Game state is stored as metadata
     def reset_game_data(self, collection):
         collection_dict = collection_share_schema.dump(collection)
-        
+
         game_data = {
             'state': 'Zero',
             'collection': collection_dict,
@@ -83,18 +83,32 @@ class Room(db.Model):
         self.game_data = json.dumps(game_data)
 
     def init_game(self):
-        self.distribute_cards()
+        self.distribute_cards(7)
         self.pick_table_card()
         self.pick_czar()
 
+    def start_new_round(self):
+        game_data = self.load_game()
+
+        game_data['table_card'] = None
+        game_data['czar_id'] = None
+        game_data['round_winner'] = None
+
+        for e in game_data['selected_cards']:
+            e['cards'] = []
+
+        self.game_data = json.dumps(game_data)
+
+        self.distribute_cards(1)
+
     # Randomly assigns white cards to hands,
     # to be called upon game start
-    def distribute_cards(self):
+    def distribute_cards(self, card_count):
         game_data = self.load_game()
         white_card_list = game_data['white_cards']
 
         for hand in game_data['hands']:
-            for i in range(7):
+            for i in range(card_count):
                 selected_card = white_card_list.pop(
                     random.randrange(len(white_card_list)))
 
@@ -172,6 +186,14 @@ class Room(db.Model):
             if score['user_id'] == user_id:
                 game_data['scores'].remove(score)
 
+        for hand in game_data['hands']:
+            if hand['user_id'] == user_id:
+                game_data['hands'].remove(hand)
+
+        for selected_cards in game_data['selected_cards']:
+            if selected_cards['user_id'] == user_id:
+                game_data['selected_cards'].remove(selected_cards)
+
         self.game_data = json.dumps(game_data)
 
     def set_cards_for_user(self, user_id, user_cards):
@@ -185,20 +207,20 @@ class Room(db.Model):
             if hand['user_id'] == user_id:
                 for selected_card in user_cards:
                     hand['cards'].remove(selected_card)
-                    
+
         self.game_data = json.dumps(game_data)
 
     def pick_winner(self, winner_id):
-      game_data = self.load_game()
+        game_data = self.load_game()
 
-      game_data['round_winner'] = winner_id
-      
-      for score in game_data['scores']:
-        if score['user_id'] == winner_id:
-          score['score'] += 1
+        game_data['round_winner'] = winner_id
 
-      self.game_data = json.dumps(game_data)
-      
+        for score in game_data['scores']:
+            if score['user_id'] == winner_id:
+                score['score'] += 1
+
+        self.game_data = json.dumps(game_data)
+
     def load_game(self):
         game_data = json.loads(self.game_data)
 
