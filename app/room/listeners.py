@@ -48,3 +48,24 @@ def cards_selected(data):
     # Notify players in room that user with
     # data['user_id'] has played his cards
     emit('cards_selected_response', data['user_id'], room=room_code)
+
+@socketio.on('pick_winner')
+def pick_winner(data)
+    room_code = data['room']
+    winner_id = data['winner_id']
+
+    current_room = Room.query.filter_by(code=room_code).first()
+
+    current_room.pick_winner(winner_id)
+
+    emit('pick_winner_response', current_room.load_game(), room=room_code)
+
+@socketio.on('new_round_start')
+def new_round_start(data)
+    room_code = data['room']
+    
+    current_room = Room.query.filter_by(code=room_code).first()
+
+    current_room.start_new_round()
+
+    emit('new_round_start_response', game.load_game(), room=room_code)
