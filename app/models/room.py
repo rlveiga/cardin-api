@@ -44,7 +44,6 @@ class Room(db.Model):
     def init_game_data(self, collection):
         creator = User.query.filter_by(id=self.created_by).first()
         user_dict = user_share_schema.dump(creator)
-        user_dict['has_played'] = False
 
         game_data = {
             'state': 'Zero',
@@ -58,10 +57,12 @@ class Room(db.Model):
                 'data': user_dict,
                 'hand': [],
                 'selected_cards': [],
-                'score': 0
+                'score': 0,
+                'is_ready': False
             }],
             'czar_id': None,
-            'round_winner': None
+            'round_winner': None,
+            'all_players_ready': False
         }
 
         self.game_data = json.dumps(game_data)
@@ -93,7 +94,7 @@ class Room(db.Model):
 
         for player in game_data['players']:
             player['selected_cards'] = []
-            player['data']['has_played'] = False
+            player['is_ready'] = False
 
         self.game_data = json.dumps(game_data)
 
@@ -112,6 +113,8 @@ class Room(db.Model):
 
                 game_data['discarded_cards'].append(selected_card)
                 player['hand'].append(selected_card)
+
+        game_data['state'] = 'Selecting'
 
         self.game_data = json.dumps(game_data)
 
@@ -143,14 +146,14 @@ class Room(db.Model):
         db.session.commit()
 
         user_dict = user_share_schema.dump(user)
-        user_dict['has_played'] = False
 
         game_data = self.load_game()
         game_data['players'].append({
             'data': user_dict,
             'hand': [],
             'selected_cards': [],
-            'score': 0
+            'score': 0,
+            'is_ready': False
         })
 
         self.game_data = json.dumps(game_data)
@@ -203,7 +206,18 @@ class Room(db.Model):
                 player['selected_cards'] = user_cards
                 for selected_card in user_cards:
                     player['hand'].remove(selected_card)
-                player['data']['has_played'] = True
+                player['is_ready'] = True
+
+        all_players_ready = True
+        state = 'Voting'
+
+        for player in game_data['players']:
+          if player['is_ready'] == False:
+            state = 'Selecting'
+            all_players_ready = False
+
+        game_data['all_players_ready'] = all_players_ready
+        game_data['state'] = state
 
         self.game_data = json.dumps(game_data)
 

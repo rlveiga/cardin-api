@@ -24,15 +24,16 @@ def test_init_room(test_client, init_game_db):
     assert game_data['players'] == [{
         'data': {
             'username': 'rodrigo',
-            'id': 1,
-            'has_played': False
+            'id': 1
         },
         'hand': [],
         'selected_cards': [],
-        'score': 0
+        'score': 0,
+        'is_ready': False
     }]
     assert game_data['czar_id'] is None
     assert game_data['round_winner'] is None
+    assert game_data['all_players_ready'] == False
 
 
 def test_add_user(test_client, init_game_db):
@@ -46,21 +47,21 @@ def test_add_user(test_client, init_game_db):
     assert game_data['players'] == [{
         'data': {
             'username': 'rodrigo',
-            'id': 1,
-            'has_played': False
+            'id': 1
         },
         'hand': [],
         'selected_cards': [],
-        'score': 0
+        'score': 0,
+        'is_ready': False
     }, {
         'data': {
             'username': 'steve',
-            'id': 2,
-            'has_played': False
+            'id': 2
         },
         'hand': [],
         'selected_cards': [],
-        'score': 0
+        'score': 0,
+        'is_ready': False
     }]
 
 
@@ -74,6 +75,7 @@ def test_distribute_cards(test_client, init_game_db):
     assert len(game_data['players'][0]['hand']) == 7
     assert len(game_data['players'][1]['hand']) == 7
     assert len(game_data['discarded_cards']) == 14
+    assert game_data['state'] == 'Selecting'
 
 
 def test_pick_table_card(test_client, init_game_db):
@@ -113,8 +115,11 @@ def test_set_cards_for_user(test_client, init_game_db):
     assert len(game_data['players'][0]['selected_cards']) == 1
     assert len(game_data['players'][1]['selected_cards']) == 1
 
-    assert game_data['players'][0]['data']['has_played'] == True
-    assert game_data['players'][1]['data']['has_played'] == True
+    assert game_data['players'][0]['is_ready'] == True
+    assert game_data['players'][1]['is_ready'] == True
+
+    assert game_data['all_players_ready'] == True
+    assert game_data['state'] == 'Voting'
 
 
 def test_pick_winner(test_client, init_game_db):
@@ -146,8 +151,8 @@ def test_start_new_round(test_client, init_game_db):
     assert len(game_data['players'][1]['hand']) == 7
     assert len(game_data['players'][0]['selected_cards']) == 0
     assert len(game_data['players'][1]['selected_cards']) == 0
-    assert game_data['players'][0]['data']['has_played'] == False
-    assert game_data['players'][1]['data']['has_played'] == False
+    assert game_data['players'][0]['is_ready'] == False
+    assert game_data['players'][1]['is_ready'] == False
 
 
 def test_remove_user(test_client, init_game_db):
