@@ -10,11 +10,10 @@ def join(data):
     user = data['user']
 
     current_room = Room.query.filter_by(code=room_code).first()
-    print(current_room.code)
 
     join_room(room_code)
 
-    emit('join_response', user, room=room_code)
+    emit('join_response', current_room.load_game(), room=room_code)
 
 
 @socketio.on('leave')
@@ -24,7 +23,7 @@ def leave(data):
 
     leave_room(room_code)
 
-    emit('leave_response', user, room=room_code)
+    emit('leave_response', current_room.load_game(), room=room_code)
 
 
 @socketio.on('game_start')
@@ -46,9 +45,7 @@ def cards_selected(data):
 
     current_room.set_cards_for_user(data['user_id'], data['cards'])
 
-    # Notify players in room that user with
-    # data['user_id'] has played his cards
-    emit('cards_selected_response', data['user_id'], room=room_code)
+    emit('cards_selected_response', current_room.load_game(), room=room_code)
 
 
 @socketio.on('pick_winner')

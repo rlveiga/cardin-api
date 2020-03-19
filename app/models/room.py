@@ -93,6 +93,7 @@ class Room(db.Model):
 
         for player in game_data['players']:
             player['selected_cards'] = []
+            player['data']['has_played'] = False
 
         self.game_data = json.dumps(game_data)
 
@@ -177,8 +178,8 @@ class Room(db.Model):
         game_data = self.load_game()
 
         for player in game_data['players']:
-          if player['data']['id'] == user_id:
-            game_data['players'].remove(player)
+            if player['data']['id'] == user_id:
+                game_data['players'].remove(player)
 
         # for score in game_data['scores']:
         #     if score['user_id'] == user_id:
@@ -202,15 +203,7 @@ class Room(db.Model):
                 player['selected_cards'] = user_cards
                 for selected_card in user_cards:
                     player['hand'].remove(selected_card)
-
-        # for data in game_data['selected_cards']:
-        #     if data['user_id'] == user_id:
-        #         data['cards'] = user_cards
-
-        # for hand in game_data['hands']:
-        #     if hand['user_id'] == user_id:
-        #         for selected_card in user_cards:
-        #             hand['cards'].remove(selected_card)
+                player['data']['has_played'] = True
 
         self.game_data = json.dumps(game_data)
 

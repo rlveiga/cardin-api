@@ -113,6 +113,9 @@ def test_set_cards_for_user(test_client, init_game_db):
     assert len(game_data['players'][0]['selected_cards']) == 1
     assert len(game_data['players'][1]['selected_cards']) == 1
 
+    assert game_data['players'][0]['data']['has_played'] == True
+    assert game_data['players'][1]['data']['has_played'] == True
+
 
 def test_pick_winner(test_client, init_game_db):
     room = Room.query.first()
@@ -143,6 +146,8 @@ def test_start_new_round(test_client, init_game_db):
     assert len(game_data['players'][1]['hand']) == 7
     assert len(game_data['players'][0]['selected_cards']) == 0
     assert len(game_data['players'][1]['selected_cards']) == 0
+    assert game_data['players'][0]['data']['has_played'] == False
+    assert game_data['players'][1]['data']['has_played'] == False
 
 
 def test_remove_user(test_client, init_game_db):
