@@ -86,19 +86,20 @@ class Room(db.Model):
         self.pick_czar()
 
     def start_new_round(self):
+        self.distribute_cards(1)
+
         game_data = self.load_game()
 
-        game_data['table_card'] = None
-        game_data['czar_id'] = None
+        self.pick_table_card()
+        self.pick_czar()
+
         game_data['round_winner'] = None
 
         for player in game_data['players']:
             player['selected_cards'] = []
             player['is_ready'] = False
-
+            
         self.game_data = json.dumps(game_data)
-
-        self.distribute_cards(1)
 
     # Randomly assigns white cards to hands,
     # to be called upon game start
@@ -107,12 +108,13 @@ class Room(db.Model):
         white_card_list = game_data['white_cards']
 
         for player in game_data['players']:
-            for i in range(card_count):
-                selected_card = white_card_list.pop(
-                    random.randrange(len(white_card_list)))
+            if player['data']['id'] != game_data['czar_id']:
+                for i in range(card_count):
+                    selected_card = white_card_list.pop(
+                        random.randrange(len(white_card_list)))
 
-                game_data['discarded_cards'].append(selected_card)
-                player['hand'].append(selected_card)
+                    game_data['discarded_cards'].append(selected_card)
+                    player['hand'].append(selected_card)
 
         game_data['state'] = 'Selecting'
 
@@ -212,9 +214,9 @@ class Room(db.Model):
         state = 'Voting'
 
         for player in game_data['players']:
-          if player['is_ready'] == False:
-            state = 'Selecting'
-            all_players_ready = False
+            if player['is_ready'] == False and game_data['czar_id'] != player['data']['id']:
+                state = 'Selecting'
+                all_players_ready = False
 
         game_data['all_players_ready'] = all_players_ready
         game_data['state'] = state

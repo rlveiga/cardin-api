@@ -103,20 +103,30 @@ def test_set_cards_for_user(test_client, init_game_db):
     room = Room.query.first()
 
     game_data = room.load_game()
+    czar_id = game_data['czar_id']
+    selector_index = 0
+    voter_index = 1
 
-    room.set_cards_for_user(1, [game_data['players'][0]['hand'][0]])
-    room.set_cards_for_user(2, [game_data['players'][1]['hand'][0]])
+    if czar_id == 1:
+        selector_index = 1
+        voter_index = 0
+        room.set_cards_for_user(2, [game_data['players'][1]['hand'][0]])
+
+    else:
+        selector_index = 0
+        voter_index = 1
+        room.set_cards_for_user(1, [game_data['players'][0]['hand'][0]])
 
     game_data = room.load_game()
 
-    assert len(game_data['players'][0]['hand']) == 6
-    assert len(game_data['players'][1]['hand']) == 6
+    assert len(game_data['players'][selector_index]['hand']) == 6
+    assert len(game_data['players'][voter_index]['hand']) == 7
 
-    assert len(game_data['players'][0]['selected_cards']) == 1
-    assert len(game_data['players'][1]['selected_cards']) == 1
+    assert len(game_data['players'][selector_index]['selected_cards']) == 1
+    assert len(game_data['players'][voter_index]['selected_cards']) == 0
 
-    assert game_data['players'][0]['is_ready'] == True
-    assert game_data['players'][1]['is_ready'] == True
+    assert game_data['players'][selector_index]['is_ready'] == True
+    assert game_data['players'][voter_index]['is_ready'] == False
 
     assert game_data['all_players_ready'] == True
     assert game_data['state'] == 'Voting'
@@ -144,8 +154,8 @@ def test_start_new_round(test_client, init_game_db):
 
     game_data = room.load_game()
 
-    assert game_data['table_card'] is None
-    assert game_data['czar_id'] is None
+    assert type(game_data['table_card']) == dict
+    assert type(game_data['czar_id']) == int
     assert game_data['round_winner'] is None
     assert len(game_data['players'][0]['hand']) == 7
     assert len(game_data['players'][1]['hand']) == 7
