@@ -56,10 +56,10 @@ class Room(db.Model):
             'players': [{
                 'data': user_dict,
                 'hand': [],
-                'selected_cards': [],
                 'score': 0,
                 'is_ready': False
             }],
+            'selected_cards': [],
             'czar_id': None,
             'round_winner': None,
             'all_players_ready': False
@@ -94,9 +94,9 @@ class Room(db.Model):
         self.pick_czar()
 
         game_data['round_winner'] = None
+        game_data['selected_cards'] = []
 
         for player in game_data['players']:
-            player['selected_cards'] = []
             player['is_ready'] = False
             
         self.game_data = json.dumps(game_data)
@@ -153,7 +153,6 @@ class Room(db.Model):
         game_data['players'].append({
             'data': user_dict,
             'hand': [],
-            'selected_cards': [],
             'score': 0,
             'is_ready': False
         })
@@ -186,26 +185,26 @@ class Room(db.Model):
             if player['data']['id'] == user_id:
                 game_data['players'].remove(player)
 
-        # for score in game_data['scores']:
-        #     if score['user_id'] == user_id:
-        #         game_data['scores'].remove(score)
-
-        # for hand in game_data['hands']:
-        #     if hand['user_id'] == user_id:
-        #         game_data['hands'].remove(hand)
-
-        # for selected_cards in game_data['selected_cards']:
-        #     if selected_cards['user_id'] == user_id:
-        #         game_data['selected_cards'].remove(selected_cards)
-
         self.game_data = json.dumps(game_data)
 
     def set_cards_for_user(self, user_id, user_cards):
         game_data = self.load_game()
 
+        user = User.query.filter_by(id=user_id).first()
+        cards = []
+
+        for card in user_cards:
+          cards.append(card_share_schema.dump(card))
+
+        selected_cards = {
+          'user': user_share_schema.dump(user),
+          'cards': cards
+        }
+
+        game_data['selected_cards'].append(selected_cards)
+
         for player in game_data['players']:
             if player['data']['id'] == user_id:
-                player['selected_cards'] = user_cards
                 for selected_card in user_cards:
                     player['hand'].remove(selected_card)
                 player['is_ready'] = True

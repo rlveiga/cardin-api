@@ -27,10 +27,10 @@ def test_init_room(test_client, init_game_db):
             'id': 1
         },
         'hand': [],
-        'selected_cards': [],
         'score': 0,
         'is_ready': False
     }]
+    assert game_data['selected_cards'] == []
     assert game_data['czar_id'] is None
     assert game_data['round_winner'] is None
     assert game_data['all_players_ready'] == False
@@ -50,7 +50,6 @@ def test_add_user(test_client, init_game_db):
             'id': 1
         },
         'hand': [],
-        'selected_cards': [],
         'score': 0,
         'is_ready': False
     }, {
@@ -59,7 +58,6 @@ def test_add_user(test_client, init_game_db):
             'id': 2
         },
         'hand': [],
-        'selected_cards': [],
         'score': 0,
         'is_ready': False
     }]
@@ -121,10 +119,9 @@ def test_set_cards_for_user(test_client, init_game_db):
 
     assert len(game_data['players'][selector_index]['hand']) == 6
     assert len(game_data['players'][voter_index]['hand']) == 7
-
-    assert len(game_data['players'][selector_index]['selected_cards']) == 1
-    assert len(game_data['players'][voter_index]['selected_cards']) == 0
-
+    assert game_data['selected_cards'][0]['user']['id'] == game_data['players'][selector_index]['data']['id']
+    assert len(game_data['selected_cards'][0]['cards']) == 1
+    assert type(game_data['selected_cards'][0]['cards'][0]) is dict
     assert game_data['players'][selector_index]['is_ready'] == True
     assert game_data['players'][voter_index]['is_ready'] == False
 
@@ -154,13 +151,12 @@ def test_start_new_round(test_client, init_game_db):
 
     game_data = room.load_game()
 
-    assert type(game_data['table_card']) == dict
-    assert type(game_data['czar_id']) == int
+    assert type(game_data['table_card']) is dict
+    assert type(game_data['czar_id']) is int
     assert game_data['round_winner'] is None
     assert len(game_data['players'][0]['hand']) == 7
     assert len(game_data['players'][1]['hand']) == 7
-    assert len(game_data['players'][0]['selected_cards']) == 0
-    assert len(game_data['players'][1]['selected_cards']) == 0
+    assert game_data['selected_cards'] == []
     assert game_data['players'][0]['is_ready'] == False
     assert game_data['players'][1]['is_ready'] == False
 
