@@ -21,6 +21,8 @@ def leave(data):
     room_code = data['room']
     user = data['user']
 
+    current_room = Room.query.filter_by(code=room_code).first()
+
     leave_room(room_code)
 
     emit('leave_response', current_room.load_game(), room=room_code)
