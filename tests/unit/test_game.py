@@ -140,7 +140,7 @@ def test_pick_winner(test_client, init_game_db):
 
     game_data = room.load_game()
 
-    assert game_data['round_winner'] == winner_id
+    assert game_data['round_winner']['id'] == winner_id
     assert game_data['players'][0]['score'] == 1
     assert game_data['state'] == 'Results'
 

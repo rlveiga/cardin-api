@@ -227,10 +227,9 @@ class Room(db.Model):
     def pick_winner(self, winner_id):
         game_data = self.load_game()
 
-        game_data['round_winner'] = winner_id
-
         for player in game_data['players']:
             if player['data']['id'] == winner_id:
+                game_data['round_winner'] = player['data']
                 player['score'] += 1
 
         game_data['state'] = 'Results'
