@@ -142,6 +142,7 @@ def test_pick_winner(test_client, init_game_db):
 
     assert game_data['round_winner'] == winner_id
     assert game_data['players'][0]['score'] == 1
+    assert game_data['state'] == 'Results'
 
 
 def test_start_new_round(test_client, init_game_db):
@@ -159,6 +160,7 @@ def test_start_new_round(test_client, init_game_db):
     assert game_data['selected_cards'] == []
     assert game_data['players'][0]['is_ready'] == False
     assert game_data['players'][1]['is_ready'] == False
+    assert game_data['all_players_ready'] == False
 
 
 def test_remove_user(test_client, init_game_db):

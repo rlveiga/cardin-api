@@ -98,6 +98,8 @@ class Room(db.Model):
 
         for player in game_data['players']:
             player['is_ready'] = False
+
+        game_data['all_players_ready'] = False
             
         self.game_data = json.dumps(game_data)
 
@@ -231,6 +233,8 @@ class Room(db.Model):
             if player['data']['id'] == winner_id:
                 player['score'] += 1
 
+        game_data['state'] = 'Results'
+        
         self.game_data = json.dumps(game_data)
 
     def load_game(self):
