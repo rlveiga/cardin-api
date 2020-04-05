@@ -99,7 +99,7 @@ class Room(db.Model):
             player['is_ready'] = False
 
         game_data['all_players_ready'] = False
-            
+
         self.game_data = json.dumps(game_data)
 
     # Randomly assigns white cards to hands,
@@ -195,20 +195,19 @@ class Room(db.Model):
         cards = []
 
         for card in user_cards:
-          cards.append(card_share_schema.dump(card))
+            cards.append(card_share_schema.dump(card))
 
         selected_cards = {
-          'user': user_share_schema.dump(user),
-          'cards': cards
+            'user': user_share_schema.dump(user),
+            'cards': cards,
+            'discarded': False
         }
 
         game_data['selected_cards'].append(selected_cards)
 
         for player in game_data['players']:
             if player['data']['id'] == user_id:
-                print(f"Hand: {player['hand']}")
                 for selected_card in user_cards:
-                    print(f"Selected card: {selected_card}")
                     player['hand'].remove(selected_card)
                 player['is_ready'] = True
 
@@ -234,7 +233,16 @@ class Room(db.Model):
                 player['score'] += 1
 
         game_data['state'] = 'Results'
-        
+
+        self.game_data = json.dumps(game_data)
+
+    def discard_option(self, user_id):
+        game_data = self.load_game()
+
+        for option in game_data['selected_cards']:
+            if option['user']['id'] == user_id:
+                option['discarded'] = True
+
         self.game_data = json.dumps(game_data)
 
     def load_game(self):

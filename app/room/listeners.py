@@ -40,7 +40,7 @@ def game_start(data):
 
 @socketio.on('cards_selected')
 def cards_selected(data):
-    print(data)
+    print('select', data)
     room_code = data['room']
 
     current_room = Room.query.filter_by(code=room_code).first()
@@ -72,9 +72,20 @@ def new_round_start(data):
 
     emit('new_round_start_response', current_room.load_game(), room=room_code)
 
+
 @socketio.on('card_swipe')
 def card_swipe(data):
-  print(data)
-  room_code = data['room']
+    print(data)
+    room_code = data['room']
 
-  emit('card_swipe_response', data['index'], room=room_code)
+    emit('card_swipe_response', data['index'], room=room_code)
+
+@socketio.on('discard_option')
+def discard_option(data):
+    print('discard', data)
+    room_code = data['room']
+
+    current_room = Room.query.filter_by(code=room_code).first()
+    current_room.discard_option(data['user_id'])
+
+    emit('discard_option_response', current_room.load_game(), room=room_code)
