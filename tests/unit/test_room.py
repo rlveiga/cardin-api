@@ -51,6 +51,9 @@ def test_create_existing_room(test_client, init_db, token):
     assert data['message'] == "Room 'test1' is already in use"
 
 def test_join_room(test_client, init_db, token):
+    room = Room.query.filter_by(code='test1').first()
+    room.init_room()
+    
     response = test_client.post('/rooms/test1', headers={'access-token': token})
 
     data = json.loads(response.data)

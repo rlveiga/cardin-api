@@ -1,4 +1,5 @@
 from app import db
+from app.models.collection import Collection, OwnedCollection
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
@@ -19,6 +20,17 @@ class User(db.Model):
     @password.setter
     def password(self, password):
         self.password_hash = generate_password_hash(password)
+
+    def create_default_collection(self):
+        default_collection = Collection(name='Minhas cartas', created_by=self.id, editable=False)
+
+        db.session.add(default_collection)
+        db.session.commit()
+
+        ownership = OwnedCollection(collection_id=default_collection.id, user_id=self.id)
+
+        db.session.add(ownership)
+        db.session.commit()
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)

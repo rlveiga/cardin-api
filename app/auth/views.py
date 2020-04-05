@@ -27,15 +27,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        default_collection = Collection(name='Minhas cartas', created_by=new_user.id, editable=False)
-
-        db.session.add(default_collection)
-        db.session.commit()
-
-        ownership = OwnedCollection(collection_id=default_collection.id, user_id=new_user.id)
-
-        db.session.add(ownership)
-        db.session.commit()
+        user.create_default_collection()
 
         user_response = user_share_schema.dump(new_user)
         user_response['collections'] = collections_share_schema.dump(new_user.collections)

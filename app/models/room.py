@@ -87,11 +87,10 @@ class Room(db.Model):
 
     def start_new_round(self):
         self.distribute_cards(1)
-
-        game_data = self.load_game()
-
         self.pick_table_card()
         self.pick_czar()
+
+        game_data = self.load_game()
 
         game_data['round_winner'] = None
         game_data['selected_cards'] = []
@@ -207,7 +206,9 @@ class Room(db.Model):
 
         for player in game_data['players']:
             if player['data']['id'] == user_id:
+                print(f"Hand: {player['hand']}")
                 for selected_card in user_cards:
+                    print(f"Selected card: {selected_card}")
                     player['hand'].remove(selected_card)
                 player['is_ready'] = True
 

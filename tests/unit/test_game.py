@@ -161,6 +161,7 @@ def test_start_new_round(test_client, init_game_db):
     assert game_data['players'][0]['is_ready'] == False
     assert game_data['players'][1]['is_ready'] == False
     assert game_data['all_players_ready'] == False
+    assert game_data['state'] == 'Selecting'
 
 
 def test_remove_user(test_client, init_game_db):
