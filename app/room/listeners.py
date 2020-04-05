@@ -70,4 +70,11 @@ def new_round_start(data):
 
     current_room.start_new_round()
 
-    emit('new_round_start_response', game.load_game(), room=room_code)
+    emit('new_round_start_response', current_room.load_game(), room=room_code)
+
+@socketio.on('card_swipe')
+def card_swipe(data):
+  print(data)
+  room_code = data['room']
+
+  emit('card_swipe_response', data['index'], room=room_code)
