@@ -194,6 +194,18 @@ class Room(db.Model):
         user = User.query.filter_by(id=user_id).first()
         cards = []
 
+        table_slots = game_data['table_card']['slots']
+
+        if table_slots == 0 or table_slots == 1:
+          if len(user_cards) != 1:
+            print(f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
+            return
+
+        else:
+          if len(user_cards) != table_slots:
+            print(f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
+            return
+
         for card in user_cards:
             cards.append(card_share_schema.dump(card))
 

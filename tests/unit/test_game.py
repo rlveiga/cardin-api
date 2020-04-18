@@ -108,12 +108,30 @@ def test_set_cards_for_user(test_client, init_game_db):
     if czar_id == 1:
         selector_index = 1
         voter_index = 0
-        room.set_cards_for_user(2, [game_data['players'][1]['hand'][0]])
+
+        cards = []
+
+        if game_data['table_card']['slots'] == 0 or game_data['table_card']['slots'] == 1:
+          cards = [game_data['players'][1]['hand'][0]]
+
+        else:
+          cards = [game_data['players'][1]['hand'][0], game_data['players'][1]['hand'][1]]
+
+        room.set_cards_for_user(2, cards)
 
     else:
         selector_index = 0
         voter_index = 1
-        room.set_cards_for_user(1, [game_data['players'][0]['hand'][0]])
+
+        cards = []
+
+        if game_data['table_card']['slots'] == 0 or game_data['table_card']['slots'] == 1:
+          cards = [game_data['players'][0]['hand'][0]]
+
+        else:
+          cards = [game_data['players'][0]['hand'][0], game_data['players'][0]['hand'][1]]
+
+        room.set_cards_for_user(1, cards)
 
     game_data = room.load_game()
 
