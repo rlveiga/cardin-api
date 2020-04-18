@@ -16,7 +16,7 @@ def test_get_card_info(test_client, init_db, init_cards_collections_db, token):
     assert len(data['collections']) == 1
     
 def test_create_card(test_client, init_db, init_cards_collections_db, token):
-    response = test_client.post('/cards/', json=dict(card_type='black', name='Something clever', collection_id=3), headers={'access-token': token})
+    response = test_client.post('/cards/', json=dict(card_type='black', name='Where is ____?', collection_id=3), headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -25,6 +25,7 @@ def test_create_card(test_client, init_db, init_cards_collections_db, token):
     assert data['message'] == 'Card created'
     assert type(data['card']) == dict
     assert data['card']['card_type'] == 'black'
+    assert data['card']['slots'] == 1
     assert data['card']['name'] == 'Something clever'
     assert data['card']['created_by'] == 1
     assert type(data['card']['collections']) == list
