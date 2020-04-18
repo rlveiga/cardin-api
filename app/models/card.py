@@ -33,12 +33,8 @@ class Card(db.Model):
         slots = 0
         words = self.name.split(' ')
 
-        print(words)
-
         for e in words:
             if '____' in e:
                 slots += 1
-
-        print(slots)
 
         self.slots = slots

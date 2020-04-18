@@ -1,11 +1,10 @@
 import pytest
+
 from app import create_app, db
-from app.models.user import User
-from app.models.room import Room, RoomAssociation
 from app.models.card import Card, CardAssociation
 from app.models.collection import Collection, OwnedCollection
-from decks import create_deck
-
+from app.models.room import Room, RoomAssociation
+from app.models.user import User
 
 @pytest.fixture(scope='module')
 def test_client():
@@ -216,7 +215,12 @@ def init_game_db(test_client):
     db.session.add(room1)
     db.session.commit()
 
-    create_deck('default_1', 'Test collection')
+    collection = Collection(name='Test collection')
+
+    db.session.add(collection)
+    db.session.commit()
+    
+    collection.create_from_file('decks/default_1', 'csv')
 
     yield db
 

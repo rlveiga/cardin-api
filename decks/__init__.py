@@ -19,7 +19,7 @@ def create_deck(folder_path, collection_name):
     white_cards_reader = csv.reader(csv_file, delimiter=';')
 
     for row in white_cards_reader:
-      new_card = Card(name=row[1], card_type='white')
+      new_card = Card(name=row[1], card_type='white', created_by=None)
       db.session.add(new_card)
       db.session.commit()
 

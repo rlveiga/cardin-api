@@ -27,10 +27,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        user.create_default_collection()
-
         user_response = user_share_schema.dump(new_user)
-        user_response['collections'] = collections_share_schema.dump(new_user.collections)
 
         res = {
             'message': 'User created',

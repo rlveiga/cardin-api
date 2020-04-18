@@ -11,9 +11,6 @@ def test_create_user(test_client, init_db):
 
     assert data['message'] == 'User created'
     assert type(data['user']) is dict
-    assert type(data['user']['collections']) is list
-    assert data['user']['collections'][0]['name'] == 'Minhas cartas'
-    assert data['user']['collections'][0]['editable'] == False
 
 def test_create_user_fail(test_client, init_db):
     response = test_client.post('/auth/register', json=dict(username='rodrigo', password='abc123'))
@@ -56,7 +53,7 @@ def test_get_user_collections(test_client, init_db, init_cards_collections_db, t
 
     assert type(data['collections']) is list
     assert type(data['collections'][0]) is dict
-    assert type(data['collections'][0]['id']) is int
+    assert data['collections'][0]['name'] == 'Minhas cartas'
     assert type(data['collections'][0]['card_count']) is int
 
 def test_get_user_cards(test_client, init_db, init_cards_collections_db, token):

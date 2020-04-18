@@ -60,8 +60,6 @@ class Collection(db.Model):
                     self.create_card(card_name, 'black')
 
     def create_card(self, card_name, card_type):
-        print(card_name)
-
         card = Card(name=card_name, card_type=card_type, created_by=None)
         db.session.add(card)
         db.session.commit()
