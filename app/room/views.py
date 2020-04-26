@@ -114,10 +114,8 @@ def get_room_info(user, room_code):
 def join_room(user, room_code):
     room = Room.query.filter_by(code=room_code).first()
 
-    if room is None or room.discarded_at is not None:
+    if room is None or room.status == 'inactive':
         return jsonify({'message': 'Room not found'}), 404
-
-    print('ROOM STATUS: ', room.code, room.status)
 
     if room.status == 'active':
         return jsonify({'message': 'Room is currently hosting a game'}), 422
@@ -133,6 +131,9 @@ def join_room(user, room_code):
 
             return jsonify(res), 403
 
+        if len(room.users) == 8:
+            return jsonify({'message': 'Room is full'}), 422
+            
         room.add_user(user.id)
 
         res = {

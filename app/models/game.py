@@ -13,11 +13,37 @@ class Game(db.Model):
     __tablename__ = 'games'
 
     id = db.Column(db.Integer, primary_key=True)
+    max_points = db.Column(db.Integer, nullable=False)
     game_data = db.Column(db.String(500000))
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow(), nullable=False)
     discarded_at = db.Column(db.DateTime)
     room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), nullable=False)
+
+    def add_new_player(self, user_id):
+        game_data = self.load_game_data()
+
+        user_dict = user_share_schema.dump(
+            User.query.filter_by(id=user_id).first())
+
+        game_data['players'].append({
+            'data': user_dict,
+            'hand': [],
+            'score': 0,
+            'is_ready': False
+        })
+
+        self.game_data = json.dumps(game_data)
+
+    def remove_player(self, user_id):
+        game_data = self.load_game_data()
+
+        for player in game_data['players']:
+            if player['data']['id'] == user_id:
+                game_data['players'].remove(player)
+
+        if len(game_data['players']) < 3:
+            self.end_game()
 
     def start_game(self, collection):
         self.init_game_data(collection)
@@ -57,6 +83,7 @@ class Game(db.Model):
                 'is_ready': False
             })
 
+        self.room.status = 'active'
         self.game_data = json.dumps(game_data)
 
     def create_deck(self, cards):
@@ -73,21 +100,28 @@ class Game(db.Model):
         self.game_data = json.dumps(game_data)
 
     def start_new_round(self):
-        self.distribute_cards()
-        self.pick_table_card()
-        self.pick_czar()
+        leaderboard = self.get_leaderboard()
+        highest_score = leaderboard[0]['score']
 
-        game_data = self.load_game_data()
+        if highest_score == self.max_points:
+            self.end_game()
 
-        game_data['round_winner'] = None
-        game_data['selected_cards'] = []
+        else:
+            self.distribute_cards()
+            self.pick_table_card()
+            self.pick_czar()
 
-        for player in game_data['players']:
-            player['is_ready'] = False
+            game_data = self.load_game_data()
 
-        game_data['all_players_ready'] = False
+            game_data['round_winner'] = None
+            game_data['selected_cards'] = []
 
-        self.game_data = json.dumps(game_data)
+            for player in game_data['players']:
+                player['is_ready'] = False
+
+            game_data['all_players_ready'] = False
+
+            self.game_data = json.dumps(game_data)
 
     # Randomly assigns white cards to hands,
     # until hand length == 7
@@ -211,9 +245,15 @@ class Game(db.Model):
     def end_game(self):
         game_data = self.load_game_data()
 
-        sorted_list = sorted(game_data['players'], key=lambda k: k['score'], reverse=True)
+        sorted_list = self.get_leaderboard()
 
         game_data['game_winner'] = sorted_list[0]['data']
-        
+
         self.discarded_at = datetime.now()
         self.game_data = json.dumps(game_data)
+        self.room.status = 'inactive'
+
+    def get_leaderboard(self):
+        game_data = self.load_game_data()
+
+        return sorted(game_data['players'], key=lambda k: k['score'], reverse=True)

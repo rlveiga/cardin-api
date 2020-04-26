@@ -13,7 +13,7 @@ def test_create_user(test_client, init_db):
     assert type(data['user']) is dict
 
 def test_create_user_fail(test_client, init_db):
-    response = test_client.post('/auth/register', json=dict(username='rodrigo', password='abc123'))
+    response = test_client.post('/auth/register', json=dict(username='user_1', password='abc123'))
 
     data = json.loads(response.data)
 
@@ -22,7 +22,7 @@ def test_create_user_fail(test_client, init_db):
     assert data['message'] == 'Username is taken'
 
 def test_login_success(test_client, init_db):
-    response = test_client.post('/auth/login', json=dict(username='rodrigo', password='abc123'))
+    response = test_client.post('/auth/login', json=dict(username='test_user', password='abc123'))
     
     data = json.loads(response.data)
 
@@ -31,7 +31,7 @@ def test_login_success(test_client, init_db):
     assert type(data['token']) is str
 
 def test_login_fail(test_client, init_db):
-    response = test_client.post('/auth/login', json=dict(username='rodrigo', password='abcd1234'))
+    response = test_client.post('/auth/login', json=dict(username='test_user', password='abcd1234'))
 
     data = json.loads(response.data)
 
@@ -44,7 +44,7 @@ def test_login_not_found(test_client, init_db):
 
     assert response.status_code == 404
 
-def test_get_user_collections(test_client, init_db, init_cards_collections_db, token):
+def test_get_user_collections(test_client, init_db, token):
     response = test_client.get('/collections/', headers={'access-token': token})
 
     data = json.loads(response.data)
@@ -56,7 +56,7 @@ def test_get_user_collections(test_client, init_db, init_cards_collections_db, t
     assert data['collections'][0]['name'] == 'Minhas cartas'
     assert type(data['collections'][0]['card_count']) is int
 
-def test_get_user_cards(test_client, init_db, init_cards_collections_db, token):
+def test_get_user_cards(test_client, init_db, token):
     response = test_client.get('/cards/', headers={'access-token': token})
 
     data = json.loads(response.data)

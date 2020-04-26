@@ -10,7 +10,7 @@ def test_init_game_data(test_client, init_game_db, token):
     room = Room.query.first()
     collection = Collection.query.first()
 
-    room.create_new_game()
+    room.create_new_game(15)
     game = room.load_game()
 
     game.init_game_data(collection)
@@ -54,6 +54,7 @@ def test_init_game_data(test_client, init_game_db, token):
     assert game_data['all_players_ready'] == False
     assert game_data['game_winner'] is None
 
+    assert room.status == 'active'
 
 def test_create_deck(test_client, init_game_db, token):
     room = Room.query.first()
@@ -188,6 +189,7 @@ def test_end_game(test_client, init_game_db):
 
     game.end_game()
 
+    assert room.status == 'inactive'
     assert game.discarded_at is not None
 
     game_data = game.load_game_data()

@@ -32,13 +32,12 @@ class Room(db.Model):
     created_by = db.Column(db.Integer)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow(), nullable=False)
-    discarded_at = db.Column(db.DateTime)
     games = db.relationship("Game", backref='room')
     # game_data = db.Column(db.String(500000))
     users = db.relationship("User", secondary='room_association')
 
-    def create_new_game(self):
-        game = Game(room_id=self.id)
+    def create_new_game(self, max_points):
+        game = Game(room_id=self.id, max_points=max_points)
 
         db.session.add(game)
         db.session.commit()
@@ -58,19 +57,7 @@ class Room(db.Model):
         active_game = self.load_game()
 
         if active_game is not None:
-            game_data = active_game.load_game_data()
-
-            user_dict = user_share_schema.dump(
-                User.query.filter_by(id=user_id).first())
-
-            game_data['players'].append({
-                'data': user_dict,
-                'hand': [],
-                'score': 0,
-                'is_ready': False
-            })
-
-            self.game_data = json.dumps(game_data)
+            active_game.add_new_player(user_id)
 
     def remove_user(self, user_id):
         association = RoomAssociation.query.filter_by(
@@ -83,16 +70,7 @@ class Room(db.Model):
         active_game = self.load_game()
 
         if active_game is not None:
-            game_data = active_game.load_game_data()
-
-            for player in game_data['players']:
-                if player['data']['id'] == user_id:
-                    game_data['players'].remove(player)
-
-            if len(game_data['players']) < 3 and self.status == 'active':
-                self.status = 'inactive'
-
-            self.game_data = json.dumps(game_data)
+            active_game.remove_player(user_id)
 
     def load_game(self):
         last_game = Game.query.filter_by(
