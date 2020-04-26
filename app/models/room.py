@@ -27,24 +27,26 @@ class Room(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(12), nullable=False)
-    status = db.Column(db.String(64), default='active', nullable=False)
+    status = db.Column(db.String(64), default='waiting', nullable=False)
     created_by = db.Column(db.Integer)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow(), nullable=False)
+    discarded_at = db.Column(db.DateTime)
     game_data = db.Column(db.String(500000))
     users = db.relationship("User", secondary='room_association')
 
-    def init_room(self, collection):
-        self.init_game_data(collection)
-        self.create_deck(collection.cards)
+    def init_game(self, collection):
+        if self.status == 'waiting':
+            self.init_game_data(collection)
+            self.create_deck(collection.cards)
+            self.distribute_cards(7)
+            self.pick_table_card()
+            self.pick_czar()
 
-        db.session.commit()
+            db.session.commit()
 
     # Game state is stored as metadata
     def init_game_data(self, collection):
-        creator = User.query.filter_by(id=self.created_by).first()
-        user_dict = user_share_schema.dump(creator)
-
         game_data = {
             'state': 'Zero',
             'collection': collection_share_schema.dump(collection),
@@ -53,17 +55,21 @@ class Room(db.Model):
             'black_cards': [],
             'discarded_cards': [],
             'table_card': None,
-            'players': [{
-                'data': user_dict,
-                'hand': [],
-                'score': 0,
-                'is_ready': False
-            }],
+            'players': [],
             'selected_cards': [],
             'czar_id': None,
             'round_winner': None,
             'all_players_ready': False
         }
+
+        for user in self.users:
+            user_dict = user_share_schema.dump(user)
+            game_data['players'].append({
+                'data': user_dict,
+                'hand': [],
+                'score': 0,
+                'is_ready': False
+            })
 
         self.game_data = json.dumps(game_data)
 
@@ -79,11 +85,6 @@ class Room(db.Model):
                 game_data['white_cards'].append(card_share_schema.dump(card))
 
         self.game_data = json.dumps(game_data)
-
-    def init_game(self):
-        self.distribute_cards(7)
-        self.pick_table_card()
-        self.pick_czar()
 
     def start_new_round(self):
         self.distribute_cards(1)
@@ -117,8 +118,6 @@ class Room(db.Model):
                     game_data['discarded_cards'].append(selected_card)
                     player['hand'].append(selected_card)
 
-        game_data['state'] = 'Selecting'
-
         self.game_data = json.dumps(game_data)
 
     # Randomly select a card prom black cards to
@@ -140,53 +139,50 @@ class Room(db.Model):
         new_czar_id = self.users[random.randrange(len(self.users))].id
 
         game_data['czar_id'] = new_czar_id
+        game_data['state'] = 'Selecting'
+        
         self.game_data = json.dumps(game_data)
 
-    def add_user(self, user):
-        new_join = RoomAssociation(user_id=user.id, room_id=self.id)
+    def add_user(self, user_id):
+        new_join = RoomAssociation(user_id=user_id, room_id=self.id)
 
         db.session.add(new_join)
         db.session.commit()
 
-        user_dict = user_share_schema.dump(user)
-
         game_data = self.load_game()
-        game_data['players'].append({
-            'data': user_dict,
-            'hand': [],
-            'score': 0,
-            'is_ready': False
-        })
 
-        self.game_data = json.dumps(game_data)
+        if game_data is not None:
+            user_dict = user_share_schema.dump(
+                User.query.filter_by(id=user_id).first())
+
+            game_data['players'].append({
+                'data': user_dict,
+                'hand': [],
+                'score': 0,
+                'is_ready': False
+            })
+
+            self.game_data = json.dumps(game_data)
 
     def remove_user(self, user_id):
-        # Host has left the room, make room inactive
-        # and remove all players
-        if self.created_by == user_id:
-            for u in self.users:
-                u_association = RoomAssociation.query.filter_by(
-                    room_id=self.id, user_id=u.id).first()
+        association = RoomAssociation.query.filter_by(
+            room_id=self.id, user_id=user_id).first()
 
-                db.session.delete(u_association)
-
-            self.status = 'inactive'
-
-        else:
-            association = RoomAssociation.query.filter_by(
-                room_id=self.id, user_id=user_id).first()
-
-            db.session.delete(association)
+        db.session.delete(association)
 
         db.session.commit()
 
         game_data = self.load_game()
 
-        for player in game_data['players']:
-            if player['data']['id'] == user_id:
-                game_data['players'].remove(player)
+        if game_data is not None:
+            for player in game_data['players']:
+                if player['data']['id'] == user_id:
+                    game_data['players'].remove(player)
 
-        self.game_data = json.dumps(game_data)
+            if len(game_data['players']) < 3 and self.status == 'active':
+                self.status = 'inactive'
+
+            self.game_data = json.dumps(game_data)
 
     def set_cards_for_user(self, user_id, user_cards):
         game_data = self.load_game()
@@ -197,14 +193,16 @@ class Room(db.Model):
         table_slots = game_data['table_card']['slots']
 
         if table_slots == 0 or table_slots == 1:
-          if len(user_cards) != 1:
-            print(f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
-            return
+            if len(user_cards) != 1:
+                print(
+                    f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
+                return
 
         else:
-          if len(user_cards) != table_slots:
-            print(f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
-            return
+            if len(user_cards) != table_slots:
+                print(
+                    f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
+                return
 
         for card in user_cards:
             cards.append(card_share_schema.dump(card))
@@ -258,6 +256,9 @@ class Room(db.Model):
         self.game_data = json.dumps(game_data)
 
     def load_game(self):
-        game_data = json.loads(self.game_data)
+        if self.game_data is not None:
+            game_data = json.loads(self.game_data)
 
-        return game_data
+            return game_data
+
+        return self.game_data

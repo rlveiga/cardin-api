@@ -1,7 +1,7 @@
 from flask import jsonify, request
 
 from app import db
-from app.models.card import Card
+from app.models.card import Card, CardAssociation
 from app.models.collection import Collection, OwnedCollection
 from app.models.schemas import card_share_schema, cards_share_schema, collection_share_schema, collections_share_schema
 from . import collection
@@ -147,3 +147,118 @@ def get_cards_from_collection(user, collection_id):
             }
 
             return jsonify(res)
+
+@collection.route('/<collection_id>/add_card/<card_id>', methods=['POST'])
+@token_required
+def add_card_to_collection(user, card_id, collection_id):
+    card = Card.query.filter_by(id=card_id).first()
+    collection = Collection.query.filter_by(id=collection_id).first()
+    existing_association = CardAssociation.query.filter_by(card_id=card_id, collection_id=collection_id).first()
+
+    if card is None:
+        res = {
+            'message': 'Card not found'
+        }
+
+        return jsonify(res), 404
+
+    elif collection is None:
+        res = {
+            'message': 'Collection not found'
+        }
+
+        return jsonify(res), 404
+
+    elif existing_association is not None:
+        res = {
+            'message': 'Card already belongs to this collection'
+        }
+
+        return jsonify(res), 409
+
+    else:
+        if card.created_by != user.id:
+            res = {
+                'message': 'You do not own this card'
+            }
+
+            return jsonify(res), 403
+
+        elif collection.created_by != user.id:
+            res = {
+                'message': 'You do not own this collection'
+            }
+
+            return jsonify(res), 403
+
+        else:
+            existing_association
+            new_association = CardAssociation(card_id=card.id, collection_id=collection.id)
+
+            db.session.add(new_association)
+            db.session.commit()
+
+            collection_response = collection_share_schema.dump(collection)
+            collection_response['cards'] = cards_share_schema.dump(collection.cards)
+
+            res = {
+                'message': 'Card added to collection',
+                'collection': collection_response
+            }
+
+            return jsonify(res)
+
+@collection.route('/<collection_id>/remove_card/<card_id>', methods=['DELETE'])
+@token_required
+def remove_card_from_collection(user, card_id, collection_id):
+    card = Card.query.filter_by(id=card_id).first()
+    collection = Collection.query.filter_by(id=collection_id).first()
+
+    if card is None:
+        res = {
+            'message': 'Card not found'
+        }
+
+        return jsonify(res), 404
+
+    elif collection is None:
+        res = {
+            'message': 'Collection not found'
+        }
+
+        return jsonify(res), 404
+
+    else:
+        if card.created_by != user.id:
+            res = {
+                'message': 'You do not own this card'
+            }
+
+            return jsonify(res), 403
+
+        elif collection.created_by != user.id:
+            res = {
+                'message': 'You do not own this collection'
+            }
+
+            return jsonify(res), 403
+
+        else:
+            removed_association = CardAssociation.query.filter_by(card_id=card.id, collection_id=collection_id).first()
+
+            if removed_association is None:
+                res = {
+                    'message': 'Card does not belong to this collection'
+                }
+
+                return jsonify(res), 404
+
+            else:
+                db.session.delete(removed_association)
+                db.session.commit()
+
+                res = {
+                    'message': 'Card removed from collection'
+                }
+
+                return jsonify(res)

@@ -37,4 +37,8 @@ class Card(db.Model):
             if '____' in e:
                 slots += 1
 
+        # Set slots equal to one even if there are no blank spaces
+        if slots == 0:
+          slots = 1
+
         self.slots = slots

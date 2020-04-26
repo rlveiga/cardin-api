@@ -12,7 +12,7 @@ class User(db.Model):
     username = db.Column(db.String(20), nullable=False)
     password_hash = db.Column(db.String(128))
     collections = db.relationship('Collection', secondary='owned_collections')
-    
+
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')
