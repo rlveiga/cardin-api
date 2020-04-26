@@ -52,6 +52,7 @@ def test_init_game_data(test_client, init_game_db, token):
     assert game_data['czar_id'] is None
     assert game_data['round_winner'] is None
     assert game_data['all_players_ready'] == False
+    assert game_data['game_winner'] is None
 
 
 def test_create_deck(test_client, init_game_db, token):
@@ -71,7 +72,7 @@ def test_distribute_cards(test_client, init_game_db):
     room = Room.query.first()
     game = room.load_game()
 
-    game.distribute_cards(7)
+    game.distribute_cards()
 
     game_data = game.load_game_data()
 
@@ -180,6 +181,18 @@ def test_start_new_round(test_client, init_game_db):
     assert game_data['players'][2]['is_ready'] == False
     assert game_data['all_players_ready'] == False
     assert game_data['state'] == 'Selecting'
+
+def test_end_game(test_client, init_game_db):
+    room = Room.query.first()
+    game = room.load_game()
+
+    game.end_game()
+
+    assert game.discarded_at is not None
+
+    game_data = game.load_game_data()
+
+    assert type(game_data['game_winner']) is dict
 
 
 # def test_remove_user(test_client, init_game_db):

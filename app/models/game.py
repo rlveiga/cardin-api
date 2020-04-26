@@ -8,6 +8,7 @@ from app.models.schemas import (card_share_schema, cards_share_schema,
                                 user_share_schema)
 from app.models.user import User
 
+
 class Game(db.Model):
     __tablename__ = 'games'
 
@@ -21,7 +22,7 @@ class Game(db.Model):
     def start_game(self, collection):
         self.init_game_data(collection)
         self.create_deck(collection.cards)
-        self.distribute_cards(7)
+        self.distribute_cards()
         self.pick_table_card()
         self.pick_czar()
 
@@ -41,9 +42,10 @@ class Game(db.Model):
             'selected_cards': [],
             'czar_id': None,
             'round_winner': None,
-            'all_players_ready': False
+            'all_players_ready': False,
+            'game_winner': None
         }
-        
+
         users_in_room = self.room.users
 
         for user in users_in_room:
@@ -71,7 +73,7 @@ class Game(db.Model):
         self.game_data = json.dumps(game_data)
 
     def start_new_round(self):
-        self.distribute_cards(1)
+        self.distribute_cards()
         self.pick_table_card()
         self.pick_czar()
 
@@ -88,19 +90,18 @@ class Game(db.Model):
         self.game_data = json.dumps(game_data)
 
     # Randomly assigns white cards to hands,
-    # to be called upon game start
-    def distribute_cards(self, card_count):
+    # until hand length == 7
+    def distribute_cards(self):
         game_data = self.load_game_data()
         white_card_list = game_data['white_cards']
 
         for player in game_data['players']:
-            if player['data']['id'] != game_data['czar_id']:
-                for i in range(card_count):
-                    selected_card = white_card_list.pop(
-                        random.randrange(len(white_card_list)))
+            while len(player['hand']) != 7:
+                selected_card = white_card_list.pop(
+                    random.randrange(len(white_card_list)))
 
-                    game_data['discarded_cards'].append(selected_card)
-                    player['hand'].append(selected_card)
+                game_data['discarded_cards'].append(selected_card)
+                player['hand'].append(selected_card)
 
         self.game_data = json.dumps(game_data)
 
@@ -120,7 +121,8 @@ class Game(db.Model):
 
     def pick_czar(self):
         game_data = self.load_game_data()
-        new_czar_id = self.room.users[random.randrange(len(self.room.users))].id
+        new_czar_id = self.room.users[random.randrange(
+            len(self.room.users))].id
 
         game_data['czar_id'] = new_czar_id
         game_data['state'] = 'Selecting'
@@ -205,3 +207,13 @@ class Game(db.Model):
             return game_data
 
         return self.game_data
+
+    def end_game(self):
+        game_data = self.load_game_data()
+
+        sorted_list = sorted(game_data['players'], key=lambda k: k['score'], reverse=True)
+
+        game_data['game_winner'] = sorted_list[0]['data']
+        
+        self.discarded_at = datetime.now()
+        self.game_data = json.dumps(game_data)
