@@ -46,7 +46,7 @@ class Room(db.Model):
         game = self.load_game()
 
         if game is not None:
-            game.start_game(collection)
+            game.start_game(collection['id'])
 
     def add_user(self, user_id):
         new_join = RoomAssociation(user_id=user_id, room_id=self.id)
@@ -71,6 +71,10 @@ class Room(db.Model):
 
         if active_game is not None:
             active_game.remove_player(user_id)
+
+        else:
+            if len(self.users) < 3:
+                self.status = 'inactive'
 
     def load_game(self):
         last_game = Game.query.filter_by(

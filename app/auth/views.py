@@ -7,6 +7,52 @@ from app.models.schemas import collections_share_schema, user_share_schema
 
 from . import auth
 
+import requests
+
+
+@auth.route('/', methods=['POST'])
+def authenticate():
+    body = request.get_json()
+    fb_access_token = body['fb_access_token']
+
+    if fb_access_token is None:
+        return jsonify({'message': 'User must provide Facebook access token'}), 422
+
+    fb_res = requests.get(
+        f"https://graph.facebook.com/debug_token?input_token={fb_access_token}&access_token=731854590887475|pFECnCSWTIvaybrkcqOUauK65Ws").json()
+
+    data = fb_res.get('data')
+
+    if data is None:
+        return jsonify({'message': 'Failed to authenticate'}), 403
+
+    fb_id = data['user_id']
+
+    user = User.query.filter_by(fb_id=fb_id).first()
+
+    if user is None:
+        print('New user identified')
+
+        user_info = requests.get(
+            f"https://graph.facebook.com/{fb_id}?fields=id,name,picture&access_token={fb_access_token}").json()
+
+        user = User(name=user_info['name'],
+                    profile_img=user_info['picture']['data']['url'],
+                    fb_id=fb_id)
+
+        db.session.add(user)
+        db.session.commit()
+
+    token = user.generate_auth_token(3600).decode('UTF-8')
+
+    res = {
+        'user': user_share_schema.dump(user),
+        'token': token
+    }
+
+    return jsonify(res)
+
+
 @auth.route('/register', methods=['POST'])
 def register():
     body = request.get_json()
@@ -33,24 +79,25 @@ def register():
             'message': 'User created',
             'user': user_response
         }
-        
+
         return jsonify(res), 201
+
 
 @auth.route('/login', methods=['POST'])
 def login():
     body = request.get_json()
     user = User.query.filter_by(username=body['username']).first()
-    
+
     if(user is None):
         res = {
             'message': 'Não exisite um usuário com este username'
         }
 
         return jsonify(res), 404
-        
+
     if(user.verify_password(body['password'])):
         token = user.generate_auth_token(3600).decode('UTF-8')
-        
+
         res = {
             'user': user_share_schema.dump(user),
             'token': token

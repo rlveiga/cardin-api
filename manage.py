@@ -8,6 +8,7 @@ from app import app, db, socketio
 from app.models.card import Card, CardAssociation
 from app.models.collection import Collection, OwnedCollection
 from app.models.room import Room, RoomAssociation
+from app.models.game import Game
 from app.models.user import User
 
 manager = Manager(app)
@@ -15,7 +16,7 @@ Migrate = Migrate(app, db)
 
 
 def make_shell_context():
-    return dict(app=app, db=db, User=User, Card=Card, Collection=Collection, OwnedCollection=OwnedCollection, Room=Room, RoomAssociation=RoomAssociation)
+    return dict(app=app, db=db, User=User, Card=Card, Collection=Collection, OwnedCollection=OwnedCollection, Room=Room, Game=Game, RoomAssociation=RoomAssociation)
 
 
 @manager.command

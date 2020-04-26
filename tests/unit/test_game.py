@@ -195,7 +195,7 @@ def test_end_game(test_client, init_game_db):
     game_data = game.load_game_data()
 
     assert type(game_data['game_winner']) is dict
-
+    assert game_data['state'] == 'End'
 
 # def test_remove_user(test_client, init_game_db):
 #     room = Room.query.first()

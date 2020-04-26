@@ -41,11 +41,19 @@ def create_room(user):
 
             return jsonify(res), 403
 
-        new_room = Room(code=body['code'],
-                        created_by=user.id, status='waiting')
+        new_room = Room.query.filter_by(
+            code=body['code'], status='inactive').first()
 
-        db.session.add(new_room)
-        db.session.commit()
+        if new_room is None:
+            new_room = Room(code=body['code'],
+                            created_by=user.id, status='waiting')
+
+            db.session.add(new_room)
+            db.session.commit()
+
+        else:
+          new_room.created_by = user.id
+          new_room.status = 'waiting'
 
         new_join = RoomAssociation(user_id=user.id, room_id=new_room.id)
 
@@ -133,7 +141,7 @@ def join_room(user, room_code):
 
         if len(room.users) == 8:
             return jsonify({'message': 'Room is full'}), 422
-            
+
         room.add_user(user.id)
 
         res = {

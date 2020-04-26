@@ -16,7 +16,7 @@ collections_share_schema = CollectionSchema(many=True)
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'username')
+        fields = ('id', 'name', 'profile_img')
 
 user_share_schema = UserSchema()
 users_share_schema = UserSchema(many=True)

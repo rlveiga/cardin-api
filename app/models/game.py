@@ -7,6 +7,7 @@ from app.models.schemas import (card_share_schema, cards_share_schema,
                                 collection_share_schema,
                                 user_share_schema)
 from app.models.user import User
+from app.models.collection import Collection
 
 
 class Game(db.Model):
@@ -43,9 +44,12 @@ class Game(db.Model):
                 game_data['players'].remove(player)
 
         if len(game_data['players']) < 3:
+            print('game ended')
             self.end_game()
 
-    def start_game(self, collection):
+    def start_game(self, collection_id):
+        collection = Collection.query.filter_by(id=collection_id).first()
+
         self.init_game_data(collection)
         self.create_deck(collection.cards)
         self.distribute_cards()
@@ -197,6 +201,8 @@ class Game(db.Model):
         for player in game_data['players']:
             if player['data']['id'] == user_id:
                 for selected_card in user_cards:
+                    print('selected: ', selected_card)
+                    print('hand: ', player['hand'])
                     player['hand'].remove(selected_card)
                 player['is_ready'] = True
 
@@ -248,10 +254,13 @@ class Game(db.Model):
         sorted_list = self.get_leaderboard()
 
         game_data['game_winner'] = sorted_list[0]['data']
+        game_data['state'] = 'End'
 
         self.discarded_at = datetime.now()
         self.game_data = json.dumps(game_data)
         self.room.status = 'inactive'
+
+        db.session.commit()
 
     def get_leaderboard(self):
         game_data = self.load_game_data()

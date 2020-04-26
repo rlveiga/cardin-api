@@ -1,5 +1,6 @@
 from app import socketio
 from app.models.room import Room
+from app.models.schemas import users_share_schema
 
 from flask_socketio import emit, join_room, leave_room, rooms
 
@@ -13,7 +14,7 @@ def join(data):
 
     join_room(room_code)
 
-    emit('join_response', current_room.load_game(), room=room_code)
+    emit('join_response', {'users': users_share_schema.dump(current_room.users)}, room=room_code)
 
 
 @socketio.on('leave')
@@ -22,32 +23,42 @@ def leave(data):
     user = data['user']
 
     current_room = Room.query.filter_by(code=room_code).first()
+    game = current_room.load_game()
+    game_data = None
+
+    if game is not None:
+        game_data = game.load_game_data()
 
     leave_room(room_code)
 
-    emit('leave_response', current_room.load_game(), room=room_code)
+    emit('leave_response', {'users': users_share_schema.dump(current_room.users), 'game': game_data}, room=room_code)
 
 
 @socketio.on('game_start')
 def game_start(data):
     room_code = data['room']
+    collection = data['collection']
 
     current_room = Room.query.filter_by(code=room_code).first()
-    current_room.init_game()
 
-    emit('start_response', current_room.load_game(), room=room_code)
+    current_room.create_new_game(3)
+    current_room.start_new_game(collection)
+
+    game = current_room.load_game()
+
+    emit('start_response', game.load_game_data(), room=room_code)
 
 
 @socketio.on('cards_selected')
 def cards_selected(data):
-    print('select', data)
     room_code = data['room']
 
     current_room = Room.query.filter_by(code=room_code).first()
+    game = current_room.load_game()
 
-    current_room.set_cards_for_user(data['user_id'], data['cards'])
+    game.set_cards_for_user(data['user_id'], data['cards'])
 
-    emit('cards_selected_response', current_room.load_game(), room=room_code)
+    emit('cards_selected_response', game.load_game_data(), room=room_code)
 
 
 @socketio.on('pick_winner')
@@ -56,10 +67,11 @@ def pick_winner(data):
     winner_id = data['winner_id']
 
     current_room = Room.query.filter_by(code=room_code).first()
+    game = current_room.load_game()
 
-    current_room.pick_winner(winner_id)
+    game.pick_winner(winner_id)
 
-    emit('pick_winner_response', current_room.load_game(), room=room_code)
+    emit('pick_winner_response', game.load_game_data(), room=room_code)
 
 
 @socketio.on('new_round_start')
@@ -67,10 +79,11 @@ def new_round_start(data):
     room_code = data['room']
 
     current_room = Room.query.filter_by(code=room_code).first()
+    game = current_room.load_game()
 
-    current_room.start_new_round()
+    game.start_new_round()
 
-    emit('new_round_start_response', current_room.load_game(), room=room_code)
+    emit('new_round_start_response', game.load_game_data(), room=room_code)
 
 
 @socketio.on('card_swipe')
@@ -86,6 +99,8 @@ def discard_option(data):
     room_code = data['room']
 
     current_room = Room.query.filter_by(code=room_code).first()
-    current_room.discard_option(data['user_id'])
+    game = current_room.load_game()
 
-    emit('discard_option_response', current_room.load_game(), room=room_code)
+    game.discard_option(data['user_id'])
+
+    emit('discard_option_response', game.load_game_data(), room=room_code)

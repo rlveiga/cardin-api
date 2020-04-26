@@ -9,8 +9,9 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), nullable=False)
-    password_hash = db.Column(db.String(128))
+    fb_id = db.Column(db.String)
+    name = db.Column(db.String)
+    profile_img = db.Column(db.String)
     collections = db.relationship('Collection', secondary='owned_collections')
 
     @property
