@@ -103,7 +103,7 @@ def test_add_unexisting_card_to_collection(test_client, init_db, token):
     collection = Collection.query.filter_by(created_by=1).first()
 
     response = test_client.post(
-        f"/collections/{collection.id}/add_card/42", headers={'access-token': token})
+        f"/collections/{collection.id}/add_card/420000", headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -186,7 +186,7 @@ def test_remove_unexisting_card_from_collection(test_client, init_db, token):
         name='Random collection', created_by=1).first()
 
     response = test_client.delete(
-        f"/collections/{collection.id}/remove_card/42", headers={'access-token': token})
+        f"/collections/{collection.id}/remove_card/420000", headers={'access-token': token})
 
     data = json.loads(response.data)
 

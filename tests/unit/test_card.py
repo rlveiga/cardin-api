@@ -43,7 +43,7 @@ def test_get_card_info(test_client, init_db, token):
 
 
 def test_get_unexisting_card_info(test_client, init_db, token):
-    response = test_client.get('/cards/42', headers={'access-token': token})
+    response = test_client.get('/cards/420000', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -72,7 +72,7 @@ def test_delete_card(test_client, init_db, token):
     assert data['card'] == {}
 
 def test_delete_unexisting_card(test_client, init_db, token):
-    response = test_client.delete('/cards/42', headers={'access-token': token})
+    response = test_client.delete('/cards/420000', headers={'access-token': token})
 
     data = json.loads(response.data)
 

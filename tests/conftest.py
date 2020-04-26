@@ -37,6 +37,10 @@ def init_db():
     # ... and one for secondary user
     create_collections(1, 2)
 
+    # Fill collection with cards
+    collection = Collection.query.filter_by(created_by=1).first()
+    collection.create_from_file('decks/default_1', 'csv')
+
     # Create card for tester
     create_cards(1, 1)
 
@@ -53,6 +57,7 @@ def init_db():
 
     db.session.close()
     db.drop_all()
+
 
 @pytest.fixture(scope='module')
 def init_game_db():
@@ -71,7 +76,7 @@ def init_game_db():
 
     # Create room to be used for game
     create_rooms(1, 1, 'waiting')
-    
+
     # Add two more players to make game playable
     room = Room.query.filter_by(created_by=1).first()
     room.add_user(2)
@@ -81,6 +86,7 @@ def init_game_db():
 
     db.session.close()
     db.drop_all()
+
 
 def create_users(number_of_users):
     for i in range(number_of_users):

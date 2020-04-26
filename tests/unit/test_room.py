@@ -5,93 +5,6 @@ from app.models.collection import Collection
 from app.models.schemas import collection_share_schema
 
 
-def test_create_existing_room(test_client, init_db, token):
-    response = test_client.post(
-        '/rooms/', json=dict(code='room1'), headers={'access-token': token})
-
-    data = json.loads(response.data)
-
-    assert response.status_code == 403
-    assert data['message'] == "Room 'room1' is already in use"
-
-
-def test_create_room(test_client, init_db, token):
-    collection = Collection.query.filter_by(created_by=1).first()
-
-    response = test_client.post(
-        '/rooms/', json=dict(code='abcde'), headers={'access-token': token})
-
-    data = json.loads(response.data)
-
-    assert response.status_code == 200
-    assert data['data']['status'] == 'waiting'
-    assert data['users'][0]['username'] == 'user_1'
-    assert data['game'] is None
-
-    # assert game_data['state'] == 'Zero'
-    # assert game_data['collection'] == collection_share_schema.dump(collection)
-    # assert type(game_data['all_cards']) is list
-    # assert type(game_data['white_cards']) is list
-    # assert type(game_data['black_cards']) is list
-    # assert game_data['discarded_cards'] == []
-    # assert game_data['table_card'] is None
-    # assert game_data['players'] == [{
-    #     'data': {
-    #         'username': 'user_1',
-    #         'id': 1
-    #     },
-    #     'hand': [],
-    #     'score': 0,
-    #     'is_ready': False
-    # }]
-    # assert game_data['selected_cards'] == []
-    # assert game_data['czar_id'] is None
-    # assert game_data['round_winner'] is None
-    # assert game_data['all_players_ready'] == False
-
-
-def test_create_another_room(test_client, init_db, token):
-    response = test_client.post(
-        '/rooms/', json=dict(code='abcdf'), headers={'access-token': token})
-
-    data = json.loads(response.data)
-
-    assert response.status_code == 403
-    assert data['message'] == 'User already belongs to a room'
-
-
-def test_leave_room(test_client, init_db, token):
-    response = test_client.delete(
-        '/rooms/abcde', headers={'access-token': token})
-
-    data = json.loads(response.data)
-
-    assert response.status_code == 200
-
-    room = Room.query.filter_by(code='test1').first()
-
-
-def test_leave_room_not_allowed(test_client, init_db, token):
-    response = test_client.delete(
-        '/rooms/abcde', headers={'access-token': token})
-
-    data = json.loads(response.data)
-
-    assert response.status_code == 422
-
-    assert data['message'] == 'User is not in this room'
-
-
-def test_leave_unexisting_room(test_client, init_db, token):
-    response = test_client.delete(
-        '/rooms/four2', headers={'access-token': token})
-
-    data = json.loads(response.data)
-
-    assert response.status_code == 404
-    assert data['message'] == 'Room not found'
-
-
 def test_join_unexisting_room(test_client, init_db, token):
     response = test_client.post(
         '/rooms/four2', headers={'access-token': token})
@@ -126,6 +39,67 @@ def test_join_room(test_client, init_db, token):
     assert data['data']['code'] == 'room1'
     assert len(data['users']) == 2
 
+
+def test_leave_room(test_client, init_db, token):
+    response = test_client.delete(
+        '/rooms/room1', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 200
+
+
+def test_leave_room_not_allowed(test_client, init_db, token):
+    response = test_client.delete(
+        '/rooms/room1', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 422
+
+    assert data['message'] == 'User is not in this room'
+
+
+def test_leave_unexisting_room(test_client, init_db, token):
+    response = test_client.delete(
+        '/rooms/four2', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 404
+    assert data['message'] == 'Room not found'
+
+
+def test_create_existing_room(test_client, init_db, token):
+    response = test_client.post(
+        '/rooms/', json=dict(code='room1'), headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 403
+    assert data['message'] == "Room 'room1' is already in use"
+
+
+def test_create_room(test_client, init_db, token):
+    response = test_client.post(
+        '/rooms/', json=dict(code='abcde'), headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 200
+    assert data['data']['status'] == 'waiting'
+    assert data['users'][0]['username'] == 'user_1'
+    assert data['game'] is None
+
+
+def test_create_another_room(test_client, init_db, token):
+    response = test_client.post(
+        '/rooms/', json=dict(code='abcdf'), headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 403
+    assert data['message'] == 'User already belongs to a room'
 
 # def test_get_user_room(test_client, init_db, token):
 #     response = test_client.get('/rooms/', headers={'access-token': token})
