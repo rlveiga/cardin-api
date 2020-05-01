@@ -25,6 +25,11 @@ def run():
 
 
 @manager.command
+def create_tables():
+    db.create_all()
+
+
+@manager.command
 def create_collection(folder_path, collection_name, file_type):
     new_collection = Collection(name=collection_name, editable=False)
     db.session.add(new_collection)
@@ -32,17 +37,19 @@ def create_collection(folder_path, collection_name, file_type):
 
     new_collection.create_from_file(folder_path, file_type)
 
+
 @manager.command
 def assign_collection(collection_id):
-  users = User.query.all()
-  collection = Collection.query.filter_by(id=collection_id).first()
+    users = User.query.all()
+    collection = Collection.query.filter_by(id=collection_id).first()
 
-  if collection is None:
-    print('Collection not found')
-    return
+    if collection is None:
+        print('Collection not found')
+        return
 
-  for user in users:
-    collection.set_owner(user.id)
+    for user in users:
+        collection.set_owner(user.id)
+
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command("db", MigrateCommand)
