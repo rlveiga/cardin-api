@@ -21,9 +21,9 @@ def authenticate():
     fb_res = requests.get(
         f"https://graph.facebook.com/debug_token?input_token={fb_access_token}&access_token=731854590887475|pFECnCSWTIvaybrkcqOUauK65Ws").json()
 
-    data = fb_res.get('data')
+    data = fb_res.get('data') 
 
-    if data is None:
+    if data.get('error') is not None:
         return jsonify({'message': 'Failed to authenticate'}), 403
 
     fb_id = data['user_id']
