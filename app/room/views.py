@@ -15,16 +15,6 @@ from . import room
 @room.route('/', methods=['POST'])
 @token_required
 def create_room(user):
-    existing_association = RoomAssociation.query.filter_by(
-        user_id=user.id).first()
-
-    if existing_association is not None:
-        res = {
-            'message': 'User already belongs to a room'
-        }
-
-        return jsonify(res), 403
-
     body = request.get_json()
 
     if body['code'] and body['collection_id']:
@@ -46,6 +36,14 @@ def create_room(user):
             }
 
             return jsonify(res), 403
+
+        existing_association = RoomAssociation.query.filter_by(
+            user_id=user.id).first()
+
+        # If user belongs to a room, remove him from there
+        if existing_association is not None:
+            Room.query.filter_by(
+                id=existing_association.room_id).first().remove_user(user.id)
 
         new_room = Room.query.filter_by(
             code=body['code'], status='inactive').first()
@@ -138,18 +136,15 @@ def join_room(user, room_code):
         return jsonify({'message': 'Room is currently hosting a game'}), 422
 
     else:
+        if len(room.users) == 8:
+            return jsonify({'message': 'Room is full'}), 422
+
         existing_association = RoomAssociation.query.filter_by(
             user_id=user.id).first()
 
+        # If user belongs to a room, remove him from there
         if existing_association is not None:
-            res = {
-                'message': 'User already belongs to a room'
-            }
-
-            return jsonify(res), 403
-
-        if len(room.users) == 8:
-            return jsonify({'message': 'Room is full'}), 422
+            Room.query.filter_by(id=existing_association.room_id).first().remove_user(user.id)
 
         room.add_user(user.id)
 

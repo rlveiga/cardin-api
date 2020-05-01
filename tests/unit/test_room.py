@@ -18,7 +18,7 @@ def test_join_unexisting_room(test_client, init_db, token):
 
 def test_join_active_room(test_client, init_db, token):
     room = Room.query.filter_by(status='active').first()
-
+    
     response = test_client.post(
         f"/rooms/{room.code}", headers={'access-token': token})
 
@@ -40,10 +40,21 @@ def test_join_room(test_client, init_db, token):
     assert data['data']['collection']['name'] == 'Minhas cartas'
     assert len(data['data']['users']) == 2
 
+def test_join_another_room(test_client, init_db, token):
+    response = test_client.post(
+        '/rooms/room3', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 200
+    assert data['data']['code'] == 'room3'
+    assert data['data']['collection']['name'] == 'Minhas cartas'
+    assert len(data['data']['users']) == 2
+
 
 def test_leave_room(test_client, init_db, token):
     response = test_client.delete(
-        '/rooms/room1', headers={'access-token': token})
+        '/rooms/room3', headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -119,8 +130,11 @@ def test_create_another_room(test_client, init_db, token):
 
     data = json.loads(response.data)
 
-    assert response.status_code == 403
-    assert data['message'] == 'User already belongs to a room'
+    assert response.status_code == 200
+    assert data['data']['status'] == 'waiting'
+    assert data['data']['collection']['name'] == 'Minhas cartas'
+    assert data['data']['users'][0]['name'] == 'user_1'
+    assert data['data']['game'] is None
 
 # def test_get_user_room(test_client, init_db, token):
 #     response = test_client.get('/rooms/', headers={'access-token': token})
@@ -131,16 +145,6 @@ def test_create_another_room(test_client, init_db, token):
 
 #     assert type(data['room']) is dict
 #     assert data['room']['code'] == 'test1'
-
-
-# def test_join_another_room(test_client, init_db, token):
-#     response = test_client.post(
-#         '/rooms/test2', headers={'access-token': token})
-
-#     data = json.loads(response.data)
-
-#     assert response.status_code == 403
-#     assert data['message'] == 'User already belongs to a room'
 
 
 # def test_distribute_cards(test_client, init_db):

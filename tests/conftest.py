@@ -29,7 +29,7 @@ def init_db():
     db.create_all()
 
     # Create test users
-    create_users(3)
+    create_users(4)
 
     # Create one collection for our tester...
     create_collections(1, 1)
@@ -52,6 +52,9 @@ def init_db():
 
     # Create room with status active (game in progress)
     create_rooms(1, 3, 'active')
+
+    # Create anotehr room with status waiting, for join_another_room test
+    create_rooms(1, 4, 'waiting')
 
     yield db  # actual testing
 
