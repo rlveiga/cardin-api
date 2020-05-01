@@ -29,6 +29,7 @@ class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(12), nullable=False)
     status = db.Column(db.String(64), default='waiting', nullable=False)
+    collection_id = db.Column(db.Integer)
     created_by = db.Column(db.Integer)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow(), nullable=False)
@@ -42,11 +43,11 @@ class Room(db.Model):
         db.session.add(game)
         db.session.commit()
 
-    def start_new_game(self, collection):
+    def start_new_game(self):
         game = self.load_game()
 
         if game is not None:
-            game.start_game(collection['id'])
+            game.start_game(self.collection_id)
 
     def add_user(self, user_id):
         new_join = RoomAssociation(user_id=user_id, room_id=self.id)
@@ -72,7 +73,6 @@ class Room(db.Model):
         if active_game is not None:
             active_game.remove_player(user_id)
 
-        else:
             if len(self.users) < 3:
                 self.status = 'inactive'
 

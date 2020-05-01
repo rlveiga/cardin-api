@@ -6,7 +6,7 @@ from app import db, socketio
 from app.models.room import Room, RoomAssociation
 from app.models.collection import Collection
 from app.models.schemas import (room_share_schema, user_share_schema,
-                                users_share_schema)
+                                users_share_schema, collection_share_schema)
 from app.wrappers import token_required
 
 from . import room
@@ -27,7 +27,13 @@ def create_room(user):
 
     body = request.get_json()
 
-    if(body['code']):
+    if body['code'] and body['collection_id']:
+        collection = Collection.query.filter_by(
+            id=body['collection_id']).first()
+
+        if collection is None:
+            return jsonify({'message': 'Collection not found'}), 404
+
         existing_active_room = Room.query.filter_by(
             code=body['code'], status='active').first()
 
@@ -46,30 +52,33 @@ def create_room(user):
 
         if new_room is None:
             new_room = Room(code=body['code'],
-                            created_by=user.id, status='waiting')
+                            created_by=user.id, status='waiting', collection_id=body['collection_id'])
 
             db.session.add(new_room)
             db.session.commit()
 
         else:
-          new_room.created_by = user.id
-          new_room.status = 'waiting'
+            new_room.created_by = user.id
+            new_room.status = 'waiting'
 
         new_join = RoomAssociation(user_id=user.id, room_id=new_room.id)
 
         db.session.add(new_join)
         db.session.commit()
 
+        room_data = room_share_schema.dump(new_room)
+        room_data['collection'] = collection_share_schema.dump(collection)
+        room_data['users'] = users_share_schema.dump(new_room.users)
+        room_data['game'] = None
+
         res = {
-            'data': room_share_schema.dump(new_room),
-            'game': None,
-            'users': users_share_schema.dump(new_room.users)
+            'data': room_data
         }
 
         return jsonify(res)
 
     else:
-        return jsonify({'message': 'Missing code in body'}), 422
+        return jsonify({'message': 'Missing data in body'}), 422
 
 
 @room.route('/', methods=['GET'])
@@ -144,10 +153,14 @@ def join_room(user, room_code):
 
         room.add_user(user.id)
 
+        room_data = room_share_schema.dump(room)
+        room_data['collection'] = collection_share_schema.dump(
+            Collection.query.filter_by(id=room.collection_id).first())
+        room_data['users'] = users_share_schema.dump(room.users)
+        room_data['game'] = room.load_game()
+
         res = {
-            'data': room_share_schema.dump(room),
-            'users': users_share_schema.dump(room.users),
-            'game': room.load_game()
+            'data': room_data
         }
 
         return jsonify(res), 200

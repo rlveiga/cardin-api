@@ -37,7 +37,8 @@ def test_join_room(test_client, init_db, token):
 
     assert response.status_code == 200
     assert data['data']['code'] == 'room1'
-    assert len(data['users']) == 2
+    assert data['data']['collection']['name'] == 'Minhas cartas'
+    assert len(data['data']['users']) == 2
 
 
 def test_leave_room(test_client, init_db, token):
@@ -71,8 +72,13 @@ def test_leave_unexisting_room(test_client, init_db, token):
 
 
 def test_create_existing_room(test_client, init_db, token):
+    room = Room.query.filter_by(code="room1").first()
+    print('room status: ', room.status)
+
+    collection = Collection.query.first()
+
     response = test_client.post(
-        '/rooms/', json=dict(code='room1'), headers={'access-token': token})
+        '/rooms/', json=dict(code='room1', collection_id=collection.id), headers={'access-token': token})
 
     data = json.loads(response.data)
 
@@ -80,21 +86,36 @@ def test_create_existing_room(test_client, init_db, token):
     assert data['message'] == "Room 'room1' is already in use"
 
 
-def test_create_room(test_client, init_db, token):
+def test_create_room_unexisting_collection(test_client, init_db, token):
     response = test_client.post(
-        '/rooms/', json=dict(code='abcde'), headers={'access-token': token})
+        '/rooms/', json=dict(code='abcde', collection_id=42), headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 404
+    assert data['message'] == 'Collection not found'
+
+
+def test_create_room(test_client, init_db, token):
+    collection = Collection.query.first()
+
+    response = test_client.post(
+        '/rooms/', json=dict(code='abcde', collection_id=collection.id), headers={'access-token': token})
 
     data = json.loads(response.data)
 
     assert response.status_code == 200
     assert data['data']['status'] == 'waiting'
-    assert data['users'][0]['username'] == 'user_1'
-    assert data['game'] is None
+    assert data['data']['collection']['name'] == 'Minhas cartas'
+    assert data['data']['users'][0]['name'] == 'user_1'
+    assert data['data']['game'] is None
 
 
 def test_create_another_room(test_client, init_db, token):
+    collection = Collection.query.first()
+
     response = test_client.post(
-        '/rooms/', json=dict(code='abcdf'), headers={'access-token': token})
+        '/rooms/', json=dict(code='abcdf', collection_id=collection.id), headers={'access-token': token})
 
     data = json.loads(response.data)
 

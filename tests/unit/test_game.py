@@ -8,7 +8,7 @@ import random
 
 def test_init_game_data(test_client, init_game_db, token):
     room = Room.query.first()
-    collection = Collection.query.first()
+    collection = Collection.query.filter_by(id=room.collection_id).first()
 
     room.create_new_game(15)
     game = room.load_game()
@@ -25,24 +25,27 @@ def test_init_game_data(test_client, init_game_db, token):
     assert game_data['table_card'] is None
     assert game_data['players'] == [{
         'data': {
-            'username': 'user_1',
-            'id': 1
+            'id': 1,
+            'name': 'user_1',
+            'profile_img': None
         },
         'hand': [],
         'score': 0,
         'is_ready': False
     }, {
         'data': {
-            'username': 'user_2',
-            'id': 2
+            'id': 2,
+            'name': 'user_2',
+            'profile_img': None
         },
         'hand': [],
         'score': 0,
         'is_ready': False
     }, {
         'data': {
-            'username': 'user_3',
-            'id': 3
+            'id': 3,
+            'name': 'user_3',
+            'profile_img': None
         },
         'hand': [],
         'score': 0,
@@ -58,7 +61,7 @@ def test_init_game_data(test_client, init_game_db, token):
 
 def test_create_deck(test_client, init_game_db, token):
     room = Room.query.first()
-    collection = Collection.query.first()
+    collection = Collection.query.filter_by(id=room.collection_id).first()
     game = room.load_game()
 
     game.create_deck(collection.cards)

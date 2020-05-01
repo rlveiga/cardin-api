@@ -90,7 +90,7 @@ def init_game_db():
 
 def create_users(number_of_users):
     for i in range(number_of_users):
-        user = User(username=f"user_{i+1}")
+        user = User(name=f"user_{i+1}")
 
         db.session.add(user)
         db.session.commit()
@@ -119,7 +119,7 @@ def create_cards(number_of_cards, creator_id):
 def create_rooms(number_of_rooms, creator_id, room_status):
     for i in range(number_of_rooms):
         room = Room(
-            code=f"room{len(Room.query.all()) + i + 1}", created_by=creator_id, status=room_status)
+            code=f"room{len(Room.query.all()) + i + 1}", created_by=creator_id, status=room_status, collection_id=1)
 
         db.session.add(room)
         db.session.commit()
