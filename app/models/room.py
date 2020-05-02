@@ -73,8 +73,8 @@ class Room(db.Model):
         if active_game is not None:
             active_game.remove_player(user_id)
 
-            if len(self.users) < 3:
-                self.status = 'inactive'
+        if len(self.users) == 0:
+            self.status = 'inactive'
 
     def load_game(self):
         last_game = Game.query.filter_by(

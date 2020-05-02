@@ -37,12 +37,11 @@ def leave(data):
 @socketio.on('game_start')
 def game_start(data):
     room_code = data['room']
-    collection = data['collection']
 
     current_room = Room.query.filter_by(code=room_code).first()
 
     current_room.create_new_game(3)
-    current_room.start_new_game(collection)
+    current_room.start_new_game()
 
     game = current_room.load_game()
 
