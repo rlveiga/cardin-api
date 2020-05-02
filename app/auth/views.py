@@ -36,7 +36,8 @@ def authenticate():
 
         user = User(name=user_info['name'],
                     profile_img=user_info['picture']['data']['url'],
-                    fb_id=fb_id)
+                    fb_id=fb_id,
+                    source='fb')
 
         db.session.add(user)
         db.session.commit()
@@ -68,7 +69,7 @@ def register():
         return jsonify(res), 409
 
     else:
-        new_user = User(username=body['username'])
+        new_user = User(username=body['username'], source='cardin')
         new_user.password = body['password']
 
         db.session.add(new_user)
