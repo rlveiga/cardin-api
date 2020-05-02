@@ -48,7 +48,11 @@ def assign_collection(collection_id):
         return
 
     for user in users:
-        collection.set_owner(user.id)
+        owns_collection = OwnedCollection.query.filter_by(
+            user_id=user.id, collection_id=collection.id).first()
+
+        if owns_collection is None:
+            collection.set_owner(user.id)
 
 
 manager.add_command("shell", Shell(make_context=make_shell_context))

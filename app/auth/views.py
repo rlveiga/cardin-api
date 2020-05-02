@@ -29,7 +29,7 @@ def authenticate():
     fb_id = data['user_id']
 
     user = User.query.filter_by(fb_id=fb_id).first()
-
+    
     if user is None:
         user_info = requests.get(
             f"https://graph.facebook.com/{fb_id}?fields=id,name,picture.width(200).height(200)&access_token={fb_access_token}").json()
