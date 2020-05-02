@@ -28,7 +28,8 @@ def test_init_game_data(test_client, init_game_db, token):
             'id': 1,
             'name': 'user_1',
             'username': None,
-            'profile_img': None
+            'profile_img': None,
+            'source': 'cardin'
         },
         'hand': [],
         'score': 0,
@@ -38,7 +39,8 @@ def test_init_game_data(test_client, init_game_db, token):
             'id': 2,
             'name': 'user_2',
             'username': None,
-            'profile_img': None
+            'profile_img': None,
+            'source': 'cardin'
         },
         'hand': [],
         'score': 0,
@@ -48,7 +50,8 @@ def test_init_game_data(test_client, init_game_db, token):
             'id': 3,
             'name': 'user_3',
             'username': None,
-            'profile_img': None
+            'profile_img': None,
+            'source': 'cardin'
         },
         'hand': [],
         'score': 0,

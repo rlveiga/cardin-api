@@ -32,7 +32,7 @@ def authenticate():
 
     if user is None:
         user_info = requests.get(
-            f"https://graph.facebook.com/{fb_id}?fields=id,name,picture&access_token={fb_access_token}").json()
+            f"https://graph.facebook.com/{fb_id}?fields=id,name,picture.height(200)&access_token={fb_access_token}").json()
 
         user = User(name=user_info['name'],
                     profile_img=user_info['picture']['data']['url'],

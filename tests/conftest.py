@@ -93,7 +93,7 @@ def init_game_db():
 
 def create_users(number_of_users):
     for i in range(number_of_users):
-        user = User(name=f"user_{i+1}")
+        user = User(name=f"user_{i+1}", source='cardin')
 
         db.session.add(user)
         db.session.commit()
