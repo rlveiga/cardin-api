@@ -31,8 +31,6 @@ def authenticate():
     user = User.query.filter_by(fb_id=fb_id).first()
 
     if user is None:
-        print('New user identified')
-
         user_info = requests.get(
             f"https://graph.facebook.com/{fb_id}?fields=id,name,picture&access_token={fb_access_token}").json()
 
@@ -42,6 +40,8 @@ def authenticate():
 
         db.session.add(user)
         db.session.commit()
+
+        user.create_default_collection()
 
     token = user.generate_auth_token(3600).decode('UTF-8')
 

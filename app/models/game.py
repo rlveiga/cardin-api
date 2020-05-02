@@ -39,14 +39,13 @@ class Game(db.Model):
     def remove_player(self, user_id):
         game_data = self.load_game_data()
 
-        if game_data is not None:
-            for player in game_data['players']:
-                if player['data']['id'] == user_id:
-                    game_data['players'].remove(player)
+        for player in game_data['players']:
+            if player['data']['id'] == user_id:
+                game_data['players'].remove(player)
 
-            if len(game_data['players']) < 3:
-                print('game ended')
-                self.end_game()
+        if len(game_data['players']) < 3:
+            print('game ended')
+            self.end_game()
 
     def start_game(self, collection_id):
         collection = Collection.query.filter_by(id=collection_id).first()

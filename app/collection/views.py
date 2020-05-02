@@ -41,13 +41,7 @@ def get_collection_info(user, collection_id):
 def get_user_collections(user):
   collections = user.collections
 
-  data = [{
-    'name': 'Minhas cartas',
-    'card_count': Card.query.filter_by(created_by=user.id).count(),
-    'white_card_count': Card.query.filter_by(created_by=user.id, card_type='white').count(),
-    'black_card_count': Card.query.filter_by(created_by=user.id, card_type='black').count(),
-    'editable': False
-  }]
+  data = []
 
   for e in collections:
     card_count = len(e.cards)
