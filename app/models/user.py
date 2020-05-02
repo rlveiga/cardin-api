@@ -11,6 +11,8 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fb_id = db.Column(db.String)
     name = db.Column(db.String)
+    username = db.Column(db.String(64))
+    password_hash = db.Column(db.String(128))
     profile_img = db.Column(db.String)
     collections = db.relationship('Collection', secondary='owned_collections')
 

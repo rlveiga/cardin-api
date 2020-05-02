@@ -13,7 +13,7 @@ def test_create_user(test_client, init_db):
     assert type(data['user']) is dict
 
 def test_create_user_fail(test_client, init_db):
-    response = test_client.post('/auth/register', json=dict(username='user_1', password='abc123'))
+    response = test_client.post('/auth/register', json=dict(username='test_user', password='abc123'))
 
     data = json.loads(response.data)
 

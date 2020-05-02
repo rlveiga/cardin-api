@@ -27,6 +27,7 @@ def test_init_game_data(test_client, init_game_db, token):
         'data': {
             'id': 1,
             'name': 'user_1',
+            'username': None,
             'profile_img': None
         },
         'hand': [],
@@ -36,6 +37,7 @@ def test_init_game_data(test_client, init_game_db, token):
         'data': {
             'id': 2,
             'name': 'user_2',
+            'username': None,
             'profile_img': None
         },
         'hand': [],
@@ -45,6 +47,7 @@ def test_init_game_data(test_client, init_game_db, token):
         'data': {
             'id': 3,
             'name': 'user_3',
+            'username': None,
             'profile_img': None
         },
         'hand': [],

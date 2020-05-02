@@ -53,6 +53,7 @@ def authenticate():
     return jsonify(res)
 
 
+# Registration of user without Facebook account
 @auth.route('/register', methods=['POST'])
 def register():
     body = request.get_json()
@@ -72,6 +73,8 @@ def register():
 
         db.session.add(new_user)
         db.session.commit()
+
+        new_user.create_default_collection()
 
         user_response = user_share_schema.dump(new_user)
 
