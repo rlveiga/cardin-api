@@ -21,6 +21,7 @@ class Collection(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), nullable=False)
+    rooms = db.relationship("Room", backref='collection')
     cards = db.relationship('Card', secondary='card_association')
     owners = db.relationship('User', secondary='owned_collections')
     editable = db.Column(db.Boolean, default=True)

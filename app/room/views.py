@@ -65,7 +65,7 @@ def create_room(user):
         db.session.commit()
 
         room_data = room_share_schema.dump(new_room)
-        room_data['collection'] = collection_share_schema.dump(collection)
+        room_data['collection'] = collection_share_schema.dump(new_room.collection)
         room_data['users'] = users_share_schema.dump(new_room.users)
         room_data['game'] = None
 
@@ -149,8 +149,7 @@ def join_room(user, room_code):
         room.add_user(user.id)
 
         room_data = room_share_schema.dump(room)
-        room_data['collection'] = collection_share_schema.dump(
-            Collection.query.filter_by(id=room.collection_id).first())
+        room_data['collection'] = collection_share_schema.dump(room.collection)
         room_data['users'] = users_share_schema.dump(room.users)
         room_data['game'] = room.load_game()
 

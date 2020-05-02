@@ -29,7 +29,7 @@ class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(12), nullable=False)
     status = db.Column(db.String(64), default='waiting', nullable=False)
-    collection_id = db.Column(db.Integer)
+    collection_id = db.Column(db.Integer, db.ForeignKey('collections.id'), nullable=False)
     created_by = db.Column(db.Integer)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow(), nullable=False)
@@ -81,3 +81,8 @@ class Room(db.Model):
             room_id=self.id, discarded_at=None).first()
 
         return last_game
+
+    def load_room_data(self):
+        data = room_share_schema.dump(self)
+
+        
