@@ -44,7 +44,7 @@ def game_start(data):
 
     if len(current_room.users) < 3:
         emit('start_response', {
-             'error': 'Mínimo de 3 jogadores na sala para iniciar a partida'}, room=room_code)
+             'error': 'Mínimo de 3 jogadores na sala para iniciar a partida'})
 
     else:
         current_room.create_new_game(3)
