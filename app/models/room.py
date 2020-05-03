@@ -47,7 +47,7 @@ class Room(db.Model):
         db.session.add(game)
         db.session.commit()
 
-    def start_new_game(self):
+    def start_game(self):
         game = self.load_game()
 
         if game is not None:

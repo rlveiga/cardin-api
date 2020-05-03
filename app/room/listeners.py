@@ -47,8 +47,10 @@ def game_start(data):
              'error': 'Mínimo de 3 jogadores na sala para iniciar a partida'})
 
     else:
-        current_room.create_new_game(3)
-        current_room.start_new_game()
+        max_ponts = data['max_points']
+
+        current_room.create_new_game(max_ponts)
+        current_room.start_game()
 
         game = current_room.load_game()
 
