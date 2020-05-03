@@ -37,6 +37,10 @@ class Room(db.Model):
     # game_data = db.Column(db.String(500000))
     users = db.relationship("User", secondary='room_association')
 
+    @property
+    def user_list(self):
+        return users_share_schema.dump(self.users)
+
     def create_new_game(self, max_points):
         game = Game(room_id=self.id, max_points=max_points)
 

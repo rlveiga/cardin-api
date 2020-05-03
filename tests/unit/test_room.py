@@ -5,6 +5,19 @@ from app.models.collection import Collection
 from app.models.schemas import collection_share_schema
 
 
+def test_get_room_info(test_client, init_db, token):
+    response = test_client.get(
+        '/rooms/room1', headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 200
+
+    assert data['data']['code'] == 'room1'
+    assert data['data']['status'] == 'waiting'
+    assert type(data['data']['user_list']) is list
+
+
 def test_join_unexisting_room(test_client, init_db, token):
     response = test_client.post(
         '/rooms/four2', headers={'access-token': token})
@@ -18,7 +31,7 @@ def test_join_unexisting_room(test_client, init_db, token):
 
 def test_join_active_room(test_client, init_db, token):
     room = Room.query.filter_by(status='active').first()
-    
+
     response = test_client.post(
         f"/rooms/{room.code}", headers={'access-token': token})
 
@@ -41,6 +54,7 @@ def test_join_room(test_client, init_db, token):
     assert type(data['data']['collection']['black_card_count']) is int
     assert type(data['data']['collection']['white_card_count']) is int
     assert len(data['data']['users']) == 2
+
 
 def test_join_another_room(test_client, init_db, token):
     response = test_client.post(

@@ -23,6 +23,6 @@ users_share_schema = UserSchema(many=True)
 
 class RoomSchema(ma.ModelSchema):
     class Meta:
-        fields = ('id', 'status', 'code', 'created_at', 'created_by')
+        fields = ('id', 'status', 'code', 'created_at', 'created_by', 'user_list')
 
 room_share_schema = RoomSchema()

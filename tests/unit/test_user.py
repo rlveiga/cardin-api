@@ -54,7 +54,8 @@ def test_get_user_collections(test_client, init_db, token):
     assert type(data['collections']) is list
     assert type(data['collections'][0]) is dict
     assert data['collections'][0]['name'] == 'Minhas cartas'
-    assert type(data['collections'][0]['card_count']) is int
+    assert type(data['collections'][0]['black_card_count']) is int
+    assert type(data['collections'][0]['white_card_count']) is int
 
 def test_get_user_cards(test_client, init_db, token):
     response = test_client.get('/cards/', headers={'access-token': token})

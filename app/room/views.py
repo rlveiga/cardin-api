@@ -100,25 +100,14 @@ def get_current_room(user):
 @room.route('/<room_code>', methods=['GET'])
 @token_required
 def get_room_info(user, room_code):
-    room = Room.query.filter_by(code=room_code, status='active').first()
+    room = Room.query.filter_by(code=room_code).first()
 
     if room is None:
         return jsonify({'message': 'Room not found'}), 404
 
     else:
-        players_list = []
-
-        for member in room.users:
-            players_list.append({
-                'data': user_share_schema.dump(member),
-                'score': 0
-            })
-
         res = {
-            'room': {
-                'data': room_share_schema.dump(room),
-                'users': players_list
-            }
+            'data': room_share_schema.dump(room)
         }
 
         return jsonify(res)
