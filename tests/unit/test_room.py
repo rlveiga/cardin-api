@@ -38,6 +38,8 @@ def test_join_room(test_client, init_db, token):
     assert response.status_code == 200
     assert data['data']['code'] == 'room1'
     assert data['data']['collection']['name'] == 'Minhas cartas'
+    assert type(data['data']['collection']['black_card_count']) is int
+    assert type(data['data']['collection']['white_card_count']) is int
     assert len(data['data']['users']) == 2
 
 def test_join_another_room(test_client, init_db, token):
@@ -118,6 +120,8 @@ def test_create_room(test_client, init_db, token):
     assert response.status_code == 200
     assert data['data']['status'] == 'waiting'
     assert data['data']['collection']['name'] == 'Minhas cartas'
+    assert type(data['data']['collection']['black_card_count']) is int
+    assert type(data['data']['collection']['white_card_count']) is int
     assert data['data']['users'][0]['name'] == 'user_1'
     assert data['data']['game'] is None
 

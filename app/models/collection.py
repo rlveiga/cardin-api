@@ -71,11 +71,11 @@ class Collection(db.Model):
         db.session.commit()
 
     @property
-    def count_white_cards(self):
+    def white_card_count(self):
         return sum(card.card_type == 'white' for card in self.cards)
 
     @property
-    def count_black_cards(self):
+    def black_card_count(self):
         return sum(card.card_type == 'black' for card in self.cards)
 
     def set_owner(self, user_id):

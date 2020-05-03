@@ -9,7 +9,7 @@ cards_share_schema = CardSchema(many=True)
 
 class CollectionSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'created_at', 'created_by', 'editable')
+        fields = ('id', 'name', 'created_at', 'created_by', 'editable', 'white_card_count', 'black_card_count')
 
 collection_share_schema = CollectionSchema()
 collections_share_schema = CollectionSchema(many=True)
