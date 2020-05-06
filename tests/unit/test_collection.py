@@ -42,6 +42,38 @@ def test_get_unauthorized_collection_info(test_client, init_db, token):
     assert data['message'] == 'You do not own this collection'
 
 
+def test_create_owned_collection(test_client, init_db, token):
+    collection = Collection.query.filter_by(name='collection_1', created_by=2).first()
+
+    response = test_client.post(f"/owned_collections/{collection.id}", headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 201
+
+    assert data['data']['name'] == 'collection_1'
+    assert data['data']['created_by'] == 2
+
+def test_create_already_owned_collection(test_client, init_db, token):
+    collection = Collection.query.filter_by(name='collection_1', created_by=2).first()
+
+    response = test_client.post(f"/owned_collections/{collection.id}", headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 422
+
+    assert data['message'] == 'You already own this collection'
+
+def test_create_owned_collection_unexisting(test_client, init_db, token):
+    response = test_client.post(f"/owned_collections/42", headers={'access-token': token})
+
+    data = json.loads(response.data)
+
+    assert response.status_code == 404
+
+    assert data['message'] == 'Collection not found'
+
 def test_create_collection(test_client, init_db, token):
     response = test_client.post(
         '/collections/', json=dict(name='Random collection'), headers={'access-token': token})

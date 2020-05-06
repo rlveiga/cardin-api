@@ -4,7 +4,7 @@ from app import db
 from app.models.card import Card, CardAssociation
 from app.models.collection import Collection, OwnedCollection
 from app.models.schemas import card_share_schema, cards_share_schema, collection_share_schema, collections_share_schema
-from . import collection
+from . import collection, owned_collection
 from app.wrappers import token_required
 from app.utils import user_owns_collection
 
@@ -53,6 +53,28 @@ def get_user_collections(user):
   }
 
   return jsonify(res)
+
+@owned_collection.route('/<collection_id>', methods=['POST'])
+@token_required
+def create_owned_collection(user, collection_id):
+  if user_owns_collection(user.id, collection_id) is True:
+    return jsonify({'message': 'You already own this collection'}), 422
+
+  collection = Collection.query.filter_by(id=collection_id).first()
+
+  if collection is None:
+    return jsonify({'message': 'Collection not found'}), 404
+
+  owned_collection = OwnedCollection(user_id=user.id, collection_id=collection_id)
+
+  db.session.add(owned_collection)
+  db.session.commit()
+
+  res = {
+    'data': collection_share_schema.dump(collection)
+  }
+
+  return jsonify(res), 201
 
 @collection.route('/', methods=['POST'])
 @token_required
