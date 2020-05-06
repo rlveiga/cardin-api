@@ -14,6 +14,7 @@ class User(db.Model):
     username = db.Column(db.String(64))
     password_hash = db.Column(db.String(128))
     profile_img = db.Column(db.String)
+    profile_color = db.Column(db.String)
     source = db.Column(db.String)
     collections = db.relationship('Collection', secondary='owned_collections')
 

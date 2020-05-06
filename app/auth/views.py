@@ -69,7 +69,7 @@ def register():
         return jsonify(res), 409
 
     else:
-        new_user = User(username=body['username'], source='cardin')
+        new_user = User(username=body['username'], source='cardin', profile_color=body['profile_color'])
         new_user.password = body['password']
 
         db.session.add(new_user)

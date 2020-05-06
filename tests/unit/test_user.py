@@ -3,7 +3,7 @@ import json
 from app.models.user import User
 
 def test_create_user(test_client, init_db):
-    response = test_client.post('/auth/register', json=dict(username='test_user', password='abc123'))
+    response = test_client.post('/auth/register', json=dict(username='test_user', password='abc123', profile_color='#2cf7ba'))
 
     data = json.loads(response.data)
 
