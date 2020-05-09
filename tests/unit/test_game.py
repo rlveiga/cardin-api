@@ -68,6 +68,7 @@ def test_init_game_data(test_client, init_game_db, token):
 
     assert room.status == 'active'
 
+
 def test_create_deck(test_client, init_game_db, token):
     room = Room.query.first()
     collection = Collection.query.filter_by(id=room.collection_id).first()
@@ -127,26 +128,26 @@ def test_set_cards_for_user(test_client, init_game_db):
     czar_id = game_data['czar_id']
 
     for player in game_data['players']:
-      player_id = player['data']['id']
+        player_id = player['data']['id']
 
-      if player_id != czar_id:
-        cards = []
+        if player_id != czar_id:
+            cards = []
 
-        for i in range(game_data['table_card']['slots']):
-          cards.append(player['hand'][i])
+            for i in range(game_data['table_card']['slots']):
+                cards.append(player['hand'][i])
 
-        game.set_cards_for_user(player_id, cards)
+            game.set_cards_for_user(player_id, cards)
 
     game_data = game.load_game_data()
 
     for player in game_data['players']:
-      player_id = player['data']['id']
+        player_id = player['data']['id']
 
-      if player_id == czar_id:
-        assert len(player['hand']) == 7
+        if player_id == czar_id:
+            assert len(player['hand']) == 7
 
-      else:
-        assert len(player['hand']) < 7
+        else:
+            assert len(player['hand']) < 7
 
     assert len(game_data['selected_cards']) == 2
     assert type(game_data['selected_cards'][0]['cards'][0]) is dict
@@ -159,11 +160,11 @@ def test_pick_winner(test_client, init_game_db):
     game = room.load_game()
 
     game_data = game.load_game_data()
-    
+
     for (i, player) in enumerate(game_data['players']):
-      # Choose first player as winner
-      if player['data']['id'] != game_data['czar_id']:
-        winner_id = player['data']['id']
+        # Choose first player as winner
+        if player['data']['id'] != game_data['czar_id']:
+            winner_id = player['data']['id']
 
     game.pick_winner(winner_id)
 
@@ -195,6 +196,7 @@ def test_start_new_round(test_client, init_game_db):
     assert game_data['all_players_ready'] == False
     assert game_data['state'] == 'Selecting'
 
+
 def test_end_game(test_client, init_game_db):
     room = Room.query.first()
     game = room.load_game()
@@ -209,11 +211,33 @@ def test_end_game(test_client, init_game_db):
     assert type(game_data['game_winner']) is dict
     assert game_data['state'] == 'End'
 
-# def test_remove_user(test_client, init_game_db):
-#     room = Room.query.first()
 
-#     room.remove_user(2)
+def test_restart_game(test_client, init_game_db):
+    room = Room.query.first()
+    
+    room.create_new_game(10)
+    room.start_game()
 
-#     game_data = game.load_game_data()
+    game = room.load_game()
+    game_data = game.load_game_data()
 
-#     assert len(game_data['players']) == 1
+    assert game_data['state'] == 'Selecting'
+    assert game_data['collection'] == collection_share_schema.dump(room.collection)
+    assert len(game_data['all_cards']) > 0
+    assert len(game_data['white_cards']) > 0
+    assert len(game_data['black_cards']) > 0
+    assert game_data['table_card'] is not None
+    assert len(game_data['discarded_cards']) == 22
+    assert len(game_data['players'][0]['hand']) == 7
+    assert len(game_data['players'][1]['hand']) == 7
+    assert len(game_data['players'][2]['hand']) == 7
+    assert game_data['players'][0]['score'] == 0
+    assert game_data['players'][1]['score'] == 0
+    assert game_data['players'][2]['score'] == 0
+    assert game_data['selected_cards'] == []
+    assert game_data['czar_id'] is not None
+    assert game_data['round_winner'] is None
+    assert game_data['all_players_ready'] == False
+    assert game_data['game_winner'] is None
+
+    assert room.status == 'active'
