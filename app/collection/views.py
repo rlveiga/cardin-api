@@ -76,6 +76,26 @@ def create_owned_collection(user, collection_id):
 
   return jsonify(res), 201
 
+@owned_collection.route('/<collection_id>', methods=['DELETE'])
+@token_required
+def delete_owned_collection(user, collection_id):
+  collection = Collection.query.filter_by(id=collection_id).first()
+
+  if collection is None:
+    return jsonify({'message': 'Collection not found'}), 404
+
+  owned_collection = OwnedCollection.query.filter_by(user_id=user.id, collection_id=collection_id).first()
+
+  if owned_collection is None:
+    return jsonify({'message': 'You do not own this collection'}), 422
+
+  db.session.delete(owned_collection)
+  db.session.commit()
+
+  return jsonify({
+    'data': None
+  })
+
 @collection.route('/', methods=['POST'])
 @token_required
 def create_collection(user):
@@ -101,7 +121,6 @@ def create_collection(user):
 def delete_collection(user, collection_id):
     collection = Collection.query.filter_by(id=collection_id).first()
 
-    # Repeating code here
     if collection is None:
         res = {
             'message': 'Collection not found'
@@ -110,8 +129,6 @@ def delete_collection(user, collection_id):
         return jsonify(res), 404
 
     else:
-        # Repeating code again, should create a wrapper that
-        # checks if user actually owns the collection
         if collection.created_by != user.id:
             res = {
                 'message': 'You do not own this collection'

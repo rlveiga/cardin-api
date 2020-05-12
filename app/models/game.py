@@ -73,7 +73,8 @@ class Game(db.Model):
             'czar_id': None,
             'round_winner': None,
             'all_players_ready': False,
-            'game_winner': None
+            'game_winner': None,
+            'max_points': self.max_points
         }
 
         users_in_room = self.room.users
