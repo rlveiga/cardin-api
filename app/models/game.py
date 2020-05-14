@@ -172,40 +172,43 @@ class Game(db.Model):
         game_data = self.load_game_data()
 
         user = User.query.filter_by(id=user_id).first()
-        cards = []
 
-        table_slots = game_data['table_card']['slots']
+        # Indicates that the player has not timed out and cards where chosen
+        if user_cards != []:
+            cards = []
 
-        if table_slots == 0 or table_slots == 1:
-            if len(user_cards) != 1:
-                print(
-                    f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
-                return
+            table_slots = game_data['table_card']['slots']
 
-        else:
-            if len(user_cards) != table_slots:
-                print(
-                    f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
-                return
+            if table_slots == 0 or table_slots == 1:
+                if len(user_cards) != 1:
+                    print(
+                        f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
+                    return
 
-        for card in user_cards:
-            cards.append(card_share_schema.dump(card))
+            else:
+                if len(user_cards) != table_slots:
+                    print(
+                        f"{len(user_cards)} cartas enviadas, {table_slots} necessárias")
+                    return
 
-        selected_cards = {
-            'user': user_share_schema.dump(user),
-            'cards': cards,
-            'discarded': False
-        }
+            for card in user_cards:
+                cards.append(card_share_schema.dump(card))
 
-        game_data['selected_cards'].append(selected_cards)
+            selected_cards = {
+                'user': user_share_schema.dump(user),
+                'cards': cards,
+                'discarded': False
+            }
 
-        for player in game_data['players']:
-            if player['data']['id'] == user_id:
-                for selected_card in user_cards:
-                    print('selected: ', selected_card)
-                    print('hand: ', player['hand'])
-                    player['hand'].remove(selected_card)
-                player['is_ready'] = True
+            game_data['selected_cards'].append(selected_cards)
+
+            for player in game_data['players']:
+                if player['data']['id'] == user_id:
+                    for selected_card in user_cards:
+                        print('selected: ', selected_card)
+                        print('hand: ', player['hand'])
+                        player['hand'].remove(selected_card)
+                    player['is_ready'] = True
 
         all_players_ready = True
         state = 'Voting'
