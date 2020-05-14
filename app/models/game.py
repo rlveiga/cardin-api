@@ -210,6 +210,11 @@ class Game(db.Model):
                         player['hand'].remove(selected_card)
                     player['is_ready'] = True
 
+        else:
+            for player in game_data['players']:
+                if player['data']['id'] == user_id:
+                    player_['is_ready'] = True
+
         all_players_ready = True
         state = 'Voting'
 
