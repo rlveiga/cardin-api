@@ -213,7 +213,7 @@ class Game(db.Model):
         else:
             for player in game_data['players']:
                 if player['data']['id'] == user_id:
-                    player_['is_ready'] = True
+                    player['is_ready'] = True
 
         all_players_ready = True
         state = 'Voting'
