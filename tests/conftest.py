@@ -91,9 +91,34 @@ def init_game_db():
     db.drop_all()
 
 
+@pytest.fixture
+def init_game_simulator_db():
+  # Create the test db
+    db.create_all()
+
+    # Create test users
+    create_users(10)
+
+    # Create collection to be used in game
+    create_collections(1, 1)
+
+    # Fill collection with cards
+    collection = Collection.query.filter_by(created_by=1).first()
+    collection.create_from_file('decks/default_1', 'csv')
+
+    # Create room to be used for game
+    create_rooms(1, 1, 'waiting')
+
+    yield db  # actual testing
+
+    db.session.close()
+    db.drop_all()
+
+
 def create_users(number_of_users):
     for i in range(number_of_users):
-        user = User(name=f"user_{i+1}", source='cardin', profile_color='#000000')
+        user = User(name=f"user_{i+1}", source='cardin',
+                    profile_color='#000000')
 
         db.session.add(user)
         db.session.commit()

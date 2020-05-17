@@ -214,7 +214,7 @@ def test_end_game(test_client, init_game_db):
 
 def test_restart_game(test_client, init_game_db):
     room = Room.query.first()
-    
+
     room.create_new_game(10)
     room.start_game()
 
@@ -222,7 +222,8 @@ def test_restart_game(test_client, init_game_db):
     game_data = game.load_game_data()
 
     assert game_data['state'] == 'Selecting'
-    assert game_data['collection'] == collection_share_schema.dump(room.collection)
+    assert game_data['collection'] == collection_share_schema.dump(
+        room.collection)
     assert len(game_data['all_cards']) > 0
     assert len(game_data['white_cards']) > 0
     assert len(game_data['black_cards']) > 0
@@ -241,3 +242,43 @@ def test_restart_game(test_client, init_game_db):
     assert game_data['game_winner'] is None
 
     assert room.status == 'active'
+
+
+def test_pick_table_card_from_empty_set(test_client, init_game_db):
+    room = Room.query.first()
+    game = room.load_game()
+    game_data = game.load_game_data()
+
+    game_data['discarded_cards'] = game_data['black_cards']
+    game_data['black_cards'] = []
+
+    game.set_game_data(game_data)
+    game.pick_table_card()
+
+    game_data = game.load_game_data()
+
+    assert len(game_data['black_cards']) > 0
+
+
+def test_distribute_cards_from_insufficient_set(test_client, init_game_db):
+    room = Room.query.first()
+    game = room.load_game()
+    game_data = game.load_game_data()
+
+    for player in game_data['players']:
+      player['hand'].pop()
+      assert len(player['hand']) < 7
+
+    game_data['discarded_cards'] = game_data['white_cards']
+    game_data['white_cards'] = []
+
+    game.set_game_data(game_data)
+
+    game.distribute_cards()
+
+    game_data = game.load_game_data()
+
+    assert len(game_data['white_cards']) > 0
+    
+    for player in game_data['players']:
+      assert len(player['hand']) == 7

@@ -44,7 +44,6 @@ class Game(db.Model):
                 game_data['players'].remove(player)
 
         if len(game_data['players']) < 3:
-            print('game ended')
             self.end_game()
 
     def start_game(self, collection_id):
@@ -134,6 +133,13 @@ class Game(db.Model):
         game_data = self.load_game_data()
         white_card_list = game_data['white_cards']
 
+        if len(white_card_list) < self.count_distributed_cards():
+            for card in game_data['discarded_cards']:
+                if card['card_type'] == 'white':
+                    white_card_list.append(card)
+
+        game_data['white_cards'] = white_card_list
+
         for player in game_data['players']:
             while len(player['hand']) != 7:
                 selected_card = white_card_list.pop(
@@ -144,12 +150,29 @@ class Game(db.Model):
 
         self.game_data = json.dumps(game_data)
 
+    def count_distributed_cards(self):
+        game_data = self.load_game_data()
+
+        count = 0
+
+        for player in game_data['players']:
+            count += (7 - len(player['hand']))
+
+        return count
+
     # Randomly select a card prom black cards to
     # be played, to be called upon game start and
     # round end
     def pick_table_card(self):
         game_data = self.load_game_data()
         black_card_list = game_data['black_cards']
+
+        if len(black_card_list) == 0:
+            for card in game_data['discarded_cards']:
+                if card['card_type'] == 'black':
+                    black_card_list.append(card)
+
+        game_data['black_cards'] = black_card_list
 
         selected_card = black_card_list.pop(
             random.randrange(len(black_card_list)))
@@ -205,8 +228,6 @@ class Game(db.Model):
             for player in game_data['players']:
                 if player['data']['id'] == user_id:
                     for selected_card in user_cards:
-                        print('selected: ', selected_card)
-                        print('hand: ', player['hand'])
                         player['hand'].remove(selected_card)
                     player['is_ready'] = True
 
@@ -256,6 +277,9 @@ class Game(db.Model):
             return game_data
 
         return self.game_data
+
+    def set_game_data(self, data):
+        self.game_data = json.dumps(data)
 
     def end_game(self):
         game_data = self.load_game_data()
