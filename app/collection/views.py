@@ -248,14 +248,7 @@ def remove_card_from_collection(user, card_id, collection_id):
         return jsonify(res), 404
 
     else:
-        if card.created_by != user.id:
-            res = {
-                'message': 'You do not own this card'
-            }
-
-            return jsonify(res), 403
-
-        elif collection.created_by != user.id:
+        if collection.created_by != user.id:
             res = {
                 'message': 'You do not own this collection'
             }

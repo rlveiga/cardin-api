@@ -258,21 +258,6 @@ def test_remove_unexisting_card_from_collection(test_client, init_db, token):
     assert data['message'] == 'Card not found'
 
 
-def test_remove_unauthorized_card_from_collection(test_client, init_db, token):
-    collection = Collection.query.filter_by(
-        name='Random collection', created_by=1).first()
-    card = Card.query.filter_by(created_by=2).first()
-
-    response = test_client.delete(
-        f"/collections/{collection.id}/remove_card/{card.id}", headers={'access-token': token})
-
-    data = json.loads(response.data)
-
-    assert response.status_code == 403
-
-    assert data['message'] == 'You do not own this card'
-
-
 def test_remove_from_unauthorized_collection(test_client, init_db, token):
     collection = Collection.query.filter_by(created_by=2).first()
     card = Card.query.filter_by(created_by=1).first()
