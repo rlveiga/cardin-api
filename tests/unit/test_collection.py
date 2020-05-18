@@ -187,20 +187,6 @@ def test_add_unexisting_card_to_collection(test_client, init_db, token):
     assert data['message'] == 'Card not found'
 
 
-def test_add_unauthorized_card_to_collection(test_client, init_db, token):
-    card = Card.query.filter_by(created_by=2).first()
-    collection = Collection.query.filter_by(created_by=1).first()
-
-    response = test_client.post(
-        f"/collections/{collection.id}/add_card/{card.id}", headers={'access-token': token})
-
-    data = json.loads(response.data)
-
-    assert response.status_code == 403
-
-    assert data['message'] == 'You do not own this card'
-
-
 def test_add_to_unauthorized_collection(test_client, init_db, token):
     card = Card.query.filter_by(created_by=1).first()
     collection = Collection.query.filter_by(created_by=2).first()
