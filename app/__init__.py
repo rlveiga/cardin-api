@@ -6,6 +6,12 @@ from config import config
 
 import os
 
+from dotenv import load_dotenv
+from pathlib import Path
+
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
+
 def create_app(config_name):
   global db
   global ma
@@ -44,4 +50,4 @@ def create_app(config_name):
 
   return app
 
-create_app(os.getenv('FLASK_CONFIG') or 'default')
+create_app(os.getenv('FLASK_CONFIG'))
