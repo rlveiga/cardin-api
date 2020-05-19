@@ -77,6 +77,9 @@ def register():
 
         new_user.create_default_collection()
 
+        cardin1 = Collection.query.filter_by(id=6).first()
+        cardin1.set_owner(new_user.id)
+
         user_response = user_share_schema.dump(new_user)
 
         res = {
