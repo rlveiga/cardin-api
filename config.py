@@ -14,7 +14,7 @@ class Config:
 class DevelopmentConfig(Config):
 	DEBUG = True
 
-	SQLALCHEMY_DATABASE_URI = 'postgres://uiulrhslqdnhue:1da67cc96eda4402689b73925bcb01f6c3bde1b5bf7f3c66f55acdc54ecea930@ec2-54-165-36-134.compute-1.amazonaws.com:5432/d1cqcq6m3tet7j'
+	SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 class TestingConfig(Config):
 	TESTING = True
@@ -22,7 +22,7 @@ class TestingConfig(Config):
 	SQLALCHEMY_DATABASE_URI = 'postgresql://rlveiga:@localhost/cardin_test'
 
 class ProductionConfig(Config):
-	SQLALCHEMY_DATABASE_URI = 'postgresql://rlveiga:@localhost/cardin_prod'
+	SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 config = {
 	'development': DevelopmentConfig,
