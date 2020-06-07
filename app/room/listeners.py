@@ -1,9 +1,10 @@
+from time import sleep
+
 from app import socketio
 from app.models.room import Room
 from app.models.schemas import users_share_schema
 
 from flask_socketio import emit, join_room, leave_room, rooms
-
 
 @socketio.on('join')
 def join(data):
@@ -81,8 +82,11 @@ def pick_winner(data):
 
     emit('pick_winner_response', game.load_game_data(), room=room_code)
 
+    sleep(5)
 
-@socketio.on('new_round_start')
+    new_round_start(data)
+
+# @socketio.on('new_round_start')
 def new_round_start(data):
     room_code = data['room']
 
