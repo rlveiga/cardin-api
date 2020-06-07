@@ -74,8 +74,8 @@ def cards_selected(data):
 
     # Last player has selected cards, check to see
     # if any players have played at all
-    if game_data.state == 'Voting':
-        if len(game_data.selected_cards) == 0:
+    if game_data['state'] == 'Voting':
+        if len(game_data['selected_cards']) == 0:
             sleep(5)
             pick_winner(data)
 
