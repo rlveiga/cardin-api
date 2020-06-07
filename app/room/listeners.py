@@ -6,6 +6,7 @@ from app.models.schemas import users_share_schema
 
 from flask_socketio import emit, join_room, leave_room, rooms
 
+
 @socketio.on('join')
 def join(data):
     room_code = data['room']
@@ -78,15 +79,18 @@ def pick_winner(data):
     current_room = Room.query.filter_by(code=room_code).first()
     game = current_room.load_game()
 
-    game.pick_winner(winner_id)
+    if winner_id != 0:
+        game.pick_winner(winner_id)
 
-    emit('pick_winner_response', game.load_game_data(), room=room_code)
+        emit('pick_winner_response', game.load_game_data(), room=room_code)
 
     sleep(5)
 
     new_round_start(data)
 
 # @socketio.on('new_round_start')
+
+
 def new_round_start(data):
     room_code = data['room']
 
