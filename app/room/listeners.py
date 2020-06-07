@@ -70,16 +70,25 @@ def cards_selected(data):
 
     emit('cards_selected_response', game.load_game_data(), room=room_code)
 
+    game_data = game.load_game_data()
+
+    # Last player has selected cards, check to see
+    # if any players have played at all
+    if game_data.state == 'Voting':
+        if len(game_data.selected_cards) == 0:
+            sleep(5)
+            pick_winner(data)
+
 
 @socketio.on('pick_winner')
 def pick_winner(data):
     room_code = data['room']
-    winner_id = data['winner_id']
+    winner_id = data.get('winner_id')
 
     current_room = Room.query.filter_by(code=room_code).first()
     game = current_room.load_game()
 
-    if winner_id != 0:
+    if winner_id is not None:
         game.pick_winner(winner_id)
 
         emit('pick_winner_response', game.load_game_data(), room=room_code)
