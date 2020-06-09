@@ -14,7 +14,7 @@ class Game(db.Model):
     __tablename__ = 'games'
 
     id = db.Column(db.Integer, primary_key=True)
-    round_number = db.Column(db.Integer)
+    round_number = db.Column(db.Integer, nullable=True)
     max_points = db.Column(db.Integer, nullable=False)
     game_data = db.Column(db.String(500000))
     created_at = db.Column(
