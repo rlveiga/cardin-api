@@ -34,7 +34,7 @@ class Game(db.Model):
             'is_ready': False
         })
 
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
 
     def remove_player(self, user_id):
         game_data = self.load_game_data()
@@ -89,7 +89,7 @@ class Game(db.Model):
             })
 
         self.room.status = 'active'
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
 
     def create_deck(self, cards):
         game_data = self.load_game_data()
@@ -102,7 +102,7 @@ class Game(db.Model):
             elif(card.card_type == 'white'):
                 game_data['white_cards'].append(card_share_schema.dump(card))
 
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
 
     def start_new_round(self):
         leaderboard = self.get_leaderboard()
@@ -127,7 +127,8 @@ class Game(db.Model):
             game_data['all_players_ready'] = False
             game_data['round_number'] += 1
 
-            self.game_data = json.dumps(game_data)
+            print('STATE: ', game_data['state'])
+            self.set_game_data(game_data)
 
     # Randomly assigns white cards to hands,
     # until hand length == 7
@@ -150,7 +151,7 @@ class Game(db.Model):
                 game_data['discarded_cards'].append(selected_card)
                 player['hand'].append(selected_card)
 
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
 
     def count_distributed_cards(self):
         game_data = self.load_game_data()
@@ -181,7 +182,7 @@ class Game(db.Model):
         game_data['table_card'] = selected_card
         game_data['discarded_cards'].append(selected_card)
 
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
 
     def pick_czar(self):
         game_data = self.load_game_data()
@@ -191,7 +192,7 @@ class Game(db.Model):
         game_data['czar_id'] = new_czar_id
         game_data['state'] = 'Selecting'
 
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
 
     def set_cards_for_user(self, user_id, user_cards):
         game_data = self.load_game_data()
@@ -246,10 +247,12 @@ class Game(db.Model):
                 state = 'Selecting'
                 all_players_ready = False
 
+        print('Will change game state to ', state)
+
         game_data['all_players_ready'] = all_players_ready
         game_data['state'] = state
 
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
 
     def pick_winner(self, winner_id):
         game_data = self.load_game_data()
@@ -261,7 +264,7 @@ class Game(db.Model):
 
         game_data['state'] = 'Results'
 
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
 
     def discard_option(self, user_id):
         game_data = self.load_game_data()
@@ -270,7 +273,7 @@ class Game(db.Model):
             if option['user']['id'] == user_id:
                 option['discarded'] = True
 
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
 
     def load_game_data(self):
         if self.game_data is not None:
@@ -283,6 +286,8 @@ class Game(db.Model):
     def set_game_data(self, data):
         self.game_data = json.dumps(data)
 
+        db.session.commit()
+
     def end_game(self):
         game_data = self.load_game_data()
 
@@ -292,7 +297,7 @@ class Game(db.Model):
         game_data['state'] = 'End'
 
         self.discarded_at = datetime.now()
-        self.game_data = json.dumps(game_data)
+        self.set_game_data(game_data)
         self.room.status = 'inactive'
 
         db.session.commit()
