@@ -58,6 +58,37 @@ def game_start(data):
 
         emit('start_response', game.load_game_data(), room=room_code)
 
+        game_data = game.load_game_data()
+        current_round = game_data['round_number']
+
+        sleep(60)
+
+        handle_inactive_players(data, current_round)
+
+
+def handle_inactive_players(data, current_round):
+    room_code = data['room']
+
+    current_room = Room.query.filter_by(code=room_code).first()
+    game = current_room.load_game()
+    game_data = game.load_game_data()
+
+    if game_data['state'] == 'Selecting' and current_round == game_data['round_number']:
+        for player in game_data['players']:
+            timed_out = True
+
+            for selected_cards in game_data['selected_cards']:
+                if selected_cards['user']['id'] == player['data']['id']:
+                    timed_out = False
+                    break
+
+            if timed_out:
+                print('user timed out')
+                data['user_id'] = player['data']['id']
+                data['cards'] = []
+
+                cards_selected(data)
+
 
 @socketio.on('cards_selected')
 def cards_selected(data):
