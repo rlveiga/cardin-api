@@ -18,8 +18,6 @@ class User(db.Model):
     profile_color = db.Column(db.String)
     source = db.Column(db.String)
     collections = db.relationship('Collection', secondary='owned_collections')
-    created_at = db.Column(
-        db.DateTime, default=datetime.datetime.utcnow(), nullable=False)
 
     @property
     def password(self):
