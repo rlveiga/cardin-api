@@ -40,6 +40,7 @@ def leave(data):
 
 @socketio.on('game_start')
 def game_start(data):
+    print('game has started')
     room_code = data['room']
 
     current_room = Room.query.filter_by(code=room_code).first()
@@ -67,6 +68,7 @@ def game_start(data):
 
 
 def handle_inactive_players(data, current_round):
+    print('handling inactive players')
     room_code = data['room']
 
     current_room = Room.query.filter_by(code=room_code).first()
@@ -75,19 +77,20 @@ def handle_inactive_players(data, current_round):
 
     if game_data['state'] == 'Selecting' and current_round == game_data['round_number']:
         for player in game_data['players']:
-            timed_out = True
+            if game_data['czar_id'] != player['data']['id']:
+                timed_out = True
 
-            for selected_cards in game_data['selected_cards']:
-                if selected_cards['user']['id'] == player['data']['id']:
-                    timed_out = False
-                    break
+                for selected_cards in game_data['selected_cards']:
+                    if selected_cards['user']['id'] == player['data']['id']:
+                        timed_out = False
+                        break
 
-            if timed_out:
-                print('user timed out')
-                data['user_id'] = player['data']['id']
-                data['cards'] = []
+                if timed_out:
+                    print('user timed out')
+                    data['user_id'] = player['data']['id']
+                    data['cards'] = []
 
-                cards_selected(data)
+                    cards_selected(data)
 
 
 @socketio.on('cards_selected')
@@ -113,25 +116,25 @@ def cards_selected(data):
 
 @socketio.on('pick_winner')
 def pick_winner(data):
+    print('winner picked')
     room_code = data['room']
     winner_id = data.get('winner_id')
 
-    current_room = Room.query.filter_by(code=room_code).first()
-    game = current_room.load_game()
+     current_room = Room.query.filter_by(code=room_code).first()
+      game = current_room.load_game()
 
-    if winner_id is not None:
-        game.pick_winner(winner_id)
+       if winner_id is not None:
+            game.pick_winner(winner_id)
 
-        emit('pick_winner_response', game.load_game_data(), room=room_code)
+            emit('pick_winner_response', game.load_game_data(), room=room_code)
 
-    sleep(5)
+        sleep(5)
 
-    new_round_start(data)
-
-# @socketio.on('new_round_start')
+        new_round_start(data)
 
 
 def new_round_start(data):
+    print('new round started')
     room_code = data['room']
 
     current_room = Room.query.filter_by(code=room_code).first()
@@ -140,6 +143,13 @@ def new_round_start(data):
     game.start_new_round()
 
     emit('new_round_start_response', game.load_game_data(), room=room_code)
+
+    game_data = game.load_game_data()
+    current_round = game_data['round_number']
+
+    sleep(60)
+
+    handle_inactive_players(data, current_round)
 
 
 @socketio.on('card_swipe')
