@@ -44,4 +44,4 @@ def create_app(config_name):
 
   return app
 
-create_app(os.environ.get('FLASK_CONFIG'))
+create_app(os.environ.get('FLASK_CONFIG') or 'default')

@@ -14,6 +14,7 @@ class Game(db.Model):
     __tablename__ = 'games'
 
     id = db.Column(db.Integer, primary_key=True)
+    round_number = db.Column(db.Integer)
     max_points = db.Column(db.Integer, nullable=False)
     game_data = db.Column(db.String(500000))
     created_at = db.Column(
@@ -61,6 +62,7 @@ class Game(db.Model):
     def init_game_data(self, collection):
         game_data = {
             'state': 'Zero',
+            'round_number': 1,
             'collection': collection_share_schema.dump(collection),
             'all_cards': [],
             'white_cards': [],
@@ -124,6 +126,7 @@ class Game(db.Model):
                 player['is_ready'] = False
 
             game_data['all_players_ready'] = False
+            game_data['round_number'] += 1
 
             self.game_data = json.dumps(game_data)
 
