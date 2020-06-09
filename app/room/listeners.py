@@ -120,17 +120,17 @@ def pick_winner(data):
     room_code = data['room']
     winner_id = data.get('winner_id')
 
-     current_room = Room.query.filter_by(code=room_code).first()
-      game = current_room.load_game()
+    current_room = Room.query.filter_by(code=room_code).first()
+    game = current_room.load_game()
 
-       if winner_id is not None:
-            game.pick_winner(winner_id)
+    if winner_id is not None:
+        game.pick_winner(winner_id)
 
-            emit('pick_winner_response', game.load_game_data(), room=room_code)
+        emit('pick_winner_response', game.load_game_data(), room=room_code)
 
-        sleep(5)
+    sleep(5)
 
-        new_round_start(data)
+    new_round_start(data)
 
 
 def new_round_start(data):
