@@ -17,6 +17,7 @@ def test_init_game_data(test_client, init_game_db, token):
     game_data = game.load_game_data()
 
     assert game_data['state'] == 'Zero'
+    assert game_data['round_number'] == 1
     assert game_data['collection'] == collection_share_schema.dump(collection)
     assert len(game_data['all_cards']) == 0
     assert len(game_data['white_cards']) == 0
@@ -195,6 +196,7 @@ def test_start_new_round(test_client, init_game_db):
     assert game_data['players'][2]['is_ready'] == False
     assert game_data['all_players_ready'] == False
     assert game_data['state'] == 'Selecting'
+    assert game_data['round_number'] == 2
 
 
 def test_end_game(test_client, init_game_db):
