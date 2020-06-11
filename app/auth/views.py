@@ -103,7 +103,7 @@ def login():
         return jsonify(res), 404
 
     if(user.verify_password(body['password'])):
-        token = user.generate_auth_token(3600).decode('UTF-8')
+        token = user.generate_auth_token(86400).decode('UTF-8')
 
         res = {
             'user': user_share_schema.dump(user),
