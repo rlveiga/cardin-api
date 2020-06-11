@@ -10,7 +10,7 @@ from app.models.collection import Collection
 def test_create_card(test_client, init_db, token):
     collection = Collection.query.filter_by(name='collection_1').first()
 
-    response = test_client.post('/cards/', json=dict(card_type='black', name='Where is ____?',
+    response = test_client.post('/cards/', json=dict(card_type='black', name='Where is _?',
                                                      collection_id=collection.id), headers={'access-token': token})
 
     data = json.loads(response.data)

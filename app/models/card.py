@@ -23,12 +23,12 @@ class Card(db.Model):
     collections = db.relationship("Collection", secondary='card_association')
 
     def __init__(self, name, card_type, created_by):
-        self.name = name
+        self.name = self.format_name(name, card_type)
         self.card_type = card_type
         self.created_by = created_by
 
         self.set_empty_slots()
-        
+
     def set_empty_slots(self):
         slots = 0
         words = self.name.split(' ')
@@ -39,6 +39,25 @@ class Card(db.Model):
 
         # Set slots equal to one even if there are no blank spaces
         if slots == 0:
-          slots = 1
+            slots = 1
 
         self.slots = slots
+
+    def format_name(self, name, card_type):
+        if card_type == 'white':
+            return name
+
+        words = name.split(' ')
+
+        for i, e in enumerate(words):
+            if '_' in e:
+                count = 0
+
+                for c in e[1:]:
+                    if c == '_':
+                        count += 1
+
+                words[i] = '____' + e[count+1:]
+
+        formatted = ' '.join(words)
+        return formatted
