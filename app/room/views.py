@@ -162,11 +162,19 @@ def get_game_data(user, room_code):
     else:
         game = room.load_game()
 
-        res = {
-            'data': game.load_game_data()
-        }
+        if game is not None:
+            res = {
+                'data': game.load_game_data()
+            }
 
-        return jsonify(res)
+            return jsonify(res)
+
+        else:
+            res = {
+                'data': None
+            }
+
+            return jsonify(res)
 
 # View may delete the room association and the room itself.
 # REST calls should limit to only one databse change per request
