@@ -65,7 +65,8 @@ def create_room(user):
         db.session.commit()
 
         room_data = room_share_schema.dump(new_room)
-        room_data['collection'] = collection_share_schema.dump(new_room.collection)
+        room_data['collection'] = collection_share_schema.dump(
+            new_room.collection)
         room_data['users'] = users_share_schema.dump(new_room.users)
         room_data['game'] = None
 
@@ -133,7 +134,8 @@ def join_room(user, room_code):
 
         # If user belongs to a room, remove him from there
         if existing_association is not None:
-            Room.query.filter_by(id=existing_association.room_id).first().remove_user(user.id)
+            Room.query.filter_by(
+                id=existing_association.room_id).first().remove_user(user.id)
 
         room.add_user(user.id)
 
@@ -147,6 +149,24 @@ def join_room(user, room_code):
         }
 
         return jsonify(res), 200
+
+
+@room.route('/<room_code>/game', methods=['GET'])
+@token_required
+def get_game_data(user, room_code):
+    room = Room.query.filter_by(code=room_code).first()
+
+    if room is None:
+        return jsonify({'message': 'Room not found'}), 404
+
+    else:
+        game = room.load_game()
+
+        res = {
+            'data': game.load_game_data()
+        }
+
+        return jsonify(res)
 
 # View may delete the room association and the room itself.
 # REST calls should limit to only one databse change per request
