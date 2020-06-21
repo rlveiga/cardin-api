@@ -199,7 +199,7 @@ class Game(db.Model):
 
         user = User.query.filter_by(id=user_id).first()
 
-        # Indicates that the player has not timed out and cards where chosen
+        # Indicates that the player has not timed out and cards were chosen
         if user_cards != []:
             cards = []
 
@@ -227,6 +227,7 @@ class Game(db.Model):
             }
 
             game_data['selected_cards'].append(selected_cards)
+            random.shuffle(game_data['selected_cards'])
 
             for player in game_data['players']:
                 if player['data']['id'] == user_id:
